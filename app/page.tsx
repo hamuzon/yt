@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from 'react';
 
+
+function getGoPath(origin: string): string {
+    try {
+        const { hostname } = new URL(origin);
+        return hostname === 'hamuzon.github.io' ? '/yt/go/' : '/go/';
+    } catch {
+        return '/go/';
+    }
+}
+
+
 export default function Home() {
     const [videoInput, setVideoInput] = useState('');
     const [t, setT] = useState('');
@@ -15,7 +26,8 @@ export default function Home() {
         if (vParam) {
             const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
             const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
-            window.location.href = `/yt/?v=${vParam}${typeParam}${tParam}`;
+            const goPath = getGoPath(window.location.origin);
+            window.location.href = `${goPath}?v=${vParam}${typeParam}${tParam}`;
         }
     }, []);
 
@@ -69,7 +81,8 @@ export default function Home() {
 
         const finalT = time || paramT;
         const base = typeof window !== 'undefined' ? window.location.origin : '';
-        let link = `${base}/yt/?v=${v}`;
+        const goPath = getGoPath(base);
+        let link = `${base}${goPath}?v=${v}`;
         if (type) link += `&type=${type}`;
         if (finalT) link += `&t=${encodeURIComponent(finalT)}`;
 
