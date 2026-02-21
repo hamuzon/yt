@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 function buildRedirectUrl(v: string, typeParam: string, t: string) {
@@ -32,53 +32,22 @@ function buildRedirectUrl(v: string, typeParam: string, t: string) {
 
 function RedirectContent() {
     const searchParams = useSearchParams();
-    const [copyBtnText, setCopyBtnText] = useState('📋 コピー');
 
-    const redirectUrl = useMemo(() => {
+    useEffect(() => {
         const v = searchParams.get('v') || '';
         const typeParam = searchParams.get('type') || '';
         const t = searchParams.get('t') || '';
 
-        if (!v) return '';
+        if (!v) {
+            window.location.replace('/');
+            return;
+        }
 
-        return buildRedirectUrl(v, typeParam, t);
+        const redirectUrl = buildRedirectUrl(v, typeParam, t);
+        window.location.replace(redirectUrl);
     }, [searchParams]);
 
-    const handleCopy = () => {
-        if (!redirectUrl) return;
-
-        navigator.clipboard
-            .writeText(redirectUrl)
-            .then(() => {
-                setCopyBtnText('✅ コピーしました');
-                setTimeout(() => setCopyBtnText('📋 コピー'), 2000);
-            })
-            .catch(() => {
-                setCopyBtnText('❌ コピー失敗');
-                setTimeout(() => setCopyBtnText('📋 コピー'), 2000);
-            });
-    };
-
-    if (!redirectUrl) return null;
-
-    return (
-        <div className="glass-card">
-            <div className="output-area break-all">
-                <a href={redirectUrl} target="_blank" rel="noopener noreferrer">
-                    {redirectUrl}
-                </a>
-            </div>
-
-            <div className="flex flex-col gap-3 mt-4">
-                <a className="btn btn-primary" href={redirectUrl} target="_blank" rel="noopener noreferrer">
-                    開く
-                </a>
-                <button className="btn btn-secondary" onClick={handleCopy}>
-                    {copyBtnText}
-                </button>
-            </div>
-        </div>
-    );
+    return null;
 }
 
 export default function GoRedirect() {
