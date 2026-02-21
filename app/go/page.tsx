@@ -33,11 +33,11 @@ function buildRedirectUrl(v: string, typeParam: string, t: string) {
 function RedirectContent() {
     const searchParams = useSearchParams();
 
-    useEffect(() => {
-        const v = searchParams.get('v') || '';
-        const typeParam = searchParams.get('type') || '';
-        const t = searchParams.get('t') || '';
+    const v = searchParams.get('v') || '';
+    const typeParam = searchParams.get('type') || '';
+    const t = searchParams.get('t') || '';
 
+    useEffect(() => {
         if (!v) {
             window.location.replace('/');
             return;
@@ -45,7 +45,7 @@ function RedirectContent() {
 
         const redirectUrl = buildRedirectUrl(v, typeParam, t);
         window.location.replace(redirectUrl);
-    }, [searchParams]);
+    }, [v, typeParam, t]);
 
     return null;
 }
