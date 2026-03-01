@@ -12,6 +12,21 @@ function getGoPath(origin: string): string {
     }
 }
 
+function buildGoUrl(origin: string, v: string, typeParam: string, t: string): string {
+    const goPath = getGoPath(origin);
+    let redirectUrl = `${origin}${goPath}?v=${encodeURIComponent(v)}`;
+
+    if (typeParam) {
+        redirectUrl += `&type=${encodeURIComponent(typeParam)}`;
+    }
+
+    if (t) {
+        redirectUrl += `&t=${encodeURIComponent(t)}`;
+    }
+
+    return redirectUrl;
+}
+
 
 export default function Home() {
     const [videoInput, setVideoInput] = useState('');
@@ -80,11 +95,7 @@ export default function Home() {
         }
 
         const finalT = time || paramT;
-        const base = typeof window !== 'undefined' ? window.location.origin : '';
-        const goPath = getGoPath(base);
-        let link = `${base}${goPath}?v=${v}`;
-        if (type) link += `&type=${type}`;
-        if (finalT) link += `&t=${encodeURIComponent(finalT)}`;
+        const link = buildGoUrl(window.location.origin, v, type, finalT);
 
         setOutput({
             html: `<a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`,
