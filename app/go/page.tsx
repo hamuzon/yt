@@ -1,25 +1,22 @@
-'use client';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-import { Suspense, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-
-function buildRedirectUrl(v: string, typeParam: string, t: string) {
-    const ua = navigator.userAgent || '';
+function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
 
     let redirectUrl: string;
 
     switch (typeParam) {
         case 'm':
-            redirectUrl = `https://music.youtube.com/watch?v=${v}`;
+            redirectUrl = `https://music.youtube.com/watch?v=${encodeURIComponent(v)}`;
             break;
         case 's':
             redirectUrl = isMobile
-                ? `https://m.youtube.com/shorts/${v}`
-                : `https://www.youtube.com/shorts/${v}`;
+                ? `https://m.youtube.com/shorts/${encodeURIComponent(v)}`
+                : `https://www.youtube.com/shorts/${encodeURIComponent(v)}`;
             break;
         default:
-            redirectUrl = `https://youtu.be/${v}`;
+            redirectUrl = `https://youtu.be/${encodeURIComponent(v)}`;
     }
 
     if (t) {
@@ -30,30 +27,17 @@ function buildRedirectUrl(v: string, typeParam: string, t: string) {
     return redirectUrl;
 }
 
-function RedirectContent() {
-    const searchParams = useSearchParams();
+export default async function GoPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ v?: string; type?: string; t?: string }>;
+}) {
+    const { v = '', type = '', t = '' } = await searchParams;
 
-    const v = searchParams.get('v') || '';
-    const typeParam = searchParams.get('type') || '';
-    const t = searchParams.get('t') || '';
+    if (!v) {
+        redirect('/');
+    }
 
-    useEffect(() => {
-        if (!v) {
-            window.location.replace('/');
-            return;
-        }
-
-        const redirectUrl = buildRedirectUrl(v, typeParam, t);
-        window.location.replace(redirectUrl);
-    }, [v, typeParam, t]);
-
-    return null;
-}
-
-export default function GoRedirect() {
-    return (
-        <Suspense fallback={null}>
-            <RedirectContent />
-        </Suspense>
-    );
+    const ua = (await headers()).get('user-agent') || '';
+    redirect(buildRedirectUrl(v, type, t, ua));
 }
