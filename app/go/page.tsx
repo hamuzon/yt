@@ -11,15 +11,15 @@ function buildRedirectUrl(v: string, typeParam: string, t: string) {
 
     switch (typeParam) {
         case 'm':
-            redirectUrl = `https://music.youtube.com/watch?v=${v}`;
+            redirectUrl = `https://music.youtube.com/watch?v=${encodeURIComponent(v)}`;
             break;
         case 's':
             redirectUrl = isMobile
-                ? `https://m.youtube.com/shorts/${v}`
-                : `https://www.youtube.com/shorts/${v}`;
+                ? `https://m.youtube.com/shorts/${encodeURIComponent(v)}`
+                : `https://www.youtube.com/shorts/${encodeURIComponent(v)}`;
             break;
         default:
-            redirectUrl = `https://youtu.be/${v}`;
+            redirectUrl = `https://youtu.be/${encodeURIComponent(v)}`;
     }
 
     if (t) {
