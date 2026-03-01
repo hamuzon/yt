@@ -38,11 +38,20 @@ function redirectResponse(url: string) {
     });
 }
 
+function normalizePath(pathname: string) {
+    const path = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+    if (path.startsWith('/yt/')) {
+        return path.slice(3);
+    }
+    return path;
+}
+
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         const url = new URL(request.url);
+        const normalizedPath = normalizePath(url.pathname);
 
-        if (url.pathname === '/go' || url.pathname === '/go/') {
+        if (normalizedPath === '/go') {
             const v = url.searchParams.get('v');
             if (!v) {
                 return redirectResponse(`${url.origin}/`);
@@ -54,7 +63,7 @@ export default {
             return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
         }
 
-        if (url.pathname === '/yt' || url.pathname === '/yt/') {
+        if (normalizedPath === '/yt') {
             const target = new URL('/go', url.origin);
             target.search = url.search;
             return redirectResponse(target.toString());

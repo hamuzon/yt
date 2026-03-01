@@ -14,3 +14,9 @@ YouTube関連のツール集です。
 npm install
 npm run dev
 ```
+
+## デプロイメモ
+
+- **GitHub Pages**: `next.config.mjs` の `output: 'export'` により `out/` を配信します。
+- **Cloudflare Workers**: `wrangler.jsonc` の `main` (`worker/index.ts`) で `/go` 系リダイレクトを処理し、その他は `assets.directory` (`out/`) を配信します。
+- Worker は `/go` / `/yt` に加えて、GitHub Pages 互換の `/yt/go` / `/yt/yt` 形式も同じロジックで処理します。

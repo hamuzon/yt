@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 function getGoPath(origin: string): string {
     try {
         const { hostname } = new URL(origin);
-        return hostname === 'hamuzon.github.io' ? '/yt/go' : '/go';
+        return hostname.endsWith('github.io') ? '/yt/go' : '/go';
     } catch {
         return '/go';
     }
@@ -42,7 +42,7 @@ export default function Home() {
             const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
             const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
             const goPath = getGoPath(window.location.origin);
-            window.location.href = `${goPath}?v=${vParam}${typeParam}${tParam}`;
+            window.location.href = `${goPath}?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
         }
     }, []);
 
