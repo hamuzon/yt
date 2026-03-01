@@ -12,25 +12,16 @@ function getGoPath(origin: string): string {
     }
 }
 
-function buildYoutubeUrl(v: string, typeParam: string, t: string): string {
-    const safeV = encodeURIComponent(v);
+function buildGoUrl(origin: string, v: string, typeParam: string, t: string): string {
+    const goPath = getGoPath(origin);
+    let redirectUrl = `${origin}${goPath}?v=${encodeURIComponent(v)}`;
 
-    let redirectUrl: string;
-
-    switch (typeParam) {
-        case 'm':
-            redirectUrl = `https://music.youtube.com/watch?v=${safeV}`;
-            break;
-        case 's':
-            redirectUrl = `https://www.youtube.com/shorts/${safeV}`;
-            break;
-        default:
-            redirectUrl = `https://youtu.be/${safeV}`;
+    if (typeParam) {
+        redirectUrl += `&type=${encodeURIComponent(typeParam)}`;
     }
 
     if (t) {
-        const sep = redirectUrl.includes('?') ? '&' : '?';
-        redirectUrl += `${sep}t=${encodeURIComponent(t)}`;
+        redirectUrl += `&t=${encodeURIComponent(t)}`;
     }
 
     return redirectUrl;
@@ -104,7 +95,7 @@ export default function Home() {
         }
 
         const finalT = time || paramT;
-        const link = buildYoutubeUrl(v, type, finalT);
+        const link = buildGoUrl(window.location.origin, v, type, finalT);
 
         setOutput({
             html: `<a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`,
