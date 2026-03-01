@@ -1,7 +1,10 @@
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+'use client';
 
-function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
+import { Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+function buildRedirectUrl(v: string, typeParam: string, t: string) {
+    const ua = navigator.userAgent || '';
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
 
     let redirectUrl: string;
@@ -27,17 +30,30 @@ function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     return redirectUrl;
 }
 
-export default async function GoPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ v?: string; type?: string; t?: string }>;
-}) {
-    const { v = '', type = '', t = '' } = await searchParams;
+function RedirectContent() {
+    const searchParams = useSearchParams();
 
-    if (!v) {
-        redirect('/');
-    }
+    const v = searchParams.get('v') || '';
+    const typeParam = searchParams.get('type') || '';
+    const t = searchParams.get('t') || '';
 
-    const ua = (await headers()).get('user-agent') || '';
-    redirect(buildRedirectUrl(v, type, t, ua));
+    useEffect(() => {
+        if (!v) {
+            window.location.replace('/');
+            return;
+        }
+
+        const redirectUrl = buildRedirectUrl(v, typeParam, t);
+        window.location.replace(redirectUrl);
+    }, [v, typeParam, t]);
+
+    return null;
+}
+
+export default function GoRedirect() {
+    return (
+        <Suspense fallback={null}>
+            <RedirectContent />
+        </Suspense>
+    );
 }
