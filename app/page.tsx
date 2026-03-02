@@ -6,9 +6,9 @@ import { useState, useEffect } from 'react';
 function getGoPath(origin: string): string {
     try {
         const { hostname } = new URL(origin);
-        return hostname.endsWith('github.io') ? '/yt/go' : '/go';
+        return hostname.endsWith('github.io') ? '/yt/go/' : '/go/';
     } catch {
-        return '/go';
+        return '/go/';
     }
 }
 
