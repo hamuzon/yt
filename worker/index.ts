@@ -85,7 +85,7 @@ export default {
             }
 
             if (normalizedPath === '/yt') {
-                const target = new URL('/yt/', url.origin);
+                const target = new URL('/go/', url.origin);
                 target.search = url.search;
                 return redirectResponse(target.toString());
             }

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 
 
-function buildYtUrl(origin: string, v: string, typeParam: string, t: string): string {
-    let redirectUrl = `${origin}/yt/?v=${encodeURIComponent(v)}`;
+function buildGoUrl(origin: string, v: string, typeParam: string, t: string): string {
+    let redirectUrl = `${origin}/go/?v=${encodeURIComponent(v)}`;
 
     if (typeParam) {
         redirectUrl += `&type=${encodeURIComponent(typeParam)}`;
@@ -31,7 +31,7 @@ export default function Home() {
         if (vParam) {
             const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
             const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
-            window.location.href = `/yt/?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
+            window.location.href = `/go/?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
         }
     }, []);
 
@@ -84,7 +84,7 @@ export default function Home() {
         }
 
         const finalT = time || paramT;
-        const link = buildYtUrl(window.location.origin, v, type, finalT);
+        const link = buildGoUrl(window.location.origin, v, type, finalT);
 
         setOutput({
             html: `<a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`,
