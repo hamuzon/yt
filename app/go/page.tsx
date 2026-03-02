@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 function buildRedirectUrl(v: string, typeParam: string, t: string) {
     const ua = navigator.userAgent || '';
@@ -32,14 +32,17 @@ function buildRedirectUrl(v: string, typeParam: string, t: string) {
 
 function RedirectContent() {
     const searchParams = useSearchParams();
+    const pathname = usePathname();
 
-    const v = searchParams.get('v') || '';
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const vFromPath = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : '';
+    const v = searchParams.get('v') || vFromPath || '';
     const typeParam = searchParams.get('type') || '';
     const t = searchParams.get('t') || '';
 
     useEffect(() => {
         if (!v) {
-            window.location.replace('/');
+            document.body.innerText = 'YouTube ID required';
             return;
         }
 

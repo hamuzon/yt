@@ -29,13 +29,7 @@ function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
 }
 
 function redirectResponse(url: string) {
-    return new Response(null, {
-        status: 302,
-        headers: {
-            Location: url,
-            'Cache-Control': 'no-store',
-        },
-    });
+    return Response.redirect(url, 302);
 }
 
 function extractVideoIdFromPath(pathname: string) {
@@ -59,7 +53,7 @@ export default {
         if (normalizedPath === '/go') {
             const v = url.searchParams.get('v');
             if (!v) {
-                return redirectResponse(`${url.origin}/`);
+                return new Response('YouTube ID required', { status: 400 });
             }
 
             const typeParam = url.searchParams.get('type') || '';
