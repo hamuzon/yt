@@ -29,12 +29,13 @@ function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
 }
 
 function redirectResponse(url: string) {
-    return Response.redirect(url, 302);
-}
-
-function extractVideoIdFromPath(pathname: string) {
-    const match = pathname.match(/^\/(?:(?:go|yt)\/)?([a-zA-Z0-9_-]{11})$/);
-    return match ? match[1] : '';
+    return new Response(null, {
+        status: 302,
+        headers: {
+            Location: url,
+            'Cache-Control': 'no-store',
+        },
+    });
 }
 
 function normalizePath(pathname: string) {
@@ -53,21 +54,13 @@ export default {
         if (normalizedPath === '/go') {
             const v = url.searchParams.get('v');
             if (!v) {
-                return new Response('YouTube ID required', { status: 400 });
+                return redirectResponse(`${url.origin}/`);
             }
 
             const typeParam = url.searchParams.get('type') || '';
             const t = url.searchParams.get('t') || '';
             const ua = request.headers.get('user-agent') || '';
             return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
-        }
-
-        const videoIdFromPath = extractVideoIdFromPath(normalizedPath);
-        if (videoIdFromPath) {
-            const typeParam = url.searchParams.get('type') || '';
-            const t = url.searchParams.get('t') || '';
-            const ua = request.headers.get('user-agent') || '';
-            return redirectResponse(buildRedirectUrl(videoIdFromPath, typeParam, t, ua));
         }
 
         if (normalizedPath === '/yt') {

@@ -14,24 +14,18 @@ function getGoPath(origin: string): string {
 
 function buildGoUrl(origin: string, v: string, typeParam: string, t: string): string {
     const goPath = getGoPath(origin);
-    let redirectUrl = `${origin}${goPath}/${encodeURIComponent(v)}`;
+    let redirectUrl = `${origin}${goPath}?v=${encodeURIComponent(v)}`;
 
-    const params = new URLSearchParams();
     if (typeParam) {
-        params.set('type', typeParam);
-    }
-    if (t) {
-        params.set('t', t);
+        redirectUrl += `&type=${encodeURIComponent(typeParam)}`;
     }
 
-    const query = params.toString();
-    if (query) {
-        redirectUrl += `?${query}`;
+    if (t) {
+        redirectUrl += `&t=${encodeURIComponent(t)}`;
     }
 
     return redirectUrl;
 }
-
 
 
 export default function Home() {
@@ -45,15 +39,10 @@ export default function Home() {
         const params = new URLSearchParams(window.location.search);
         const vParam = params.get("v");
         if (vParam) {
-            const query = new URLSearchParams();
-            const tParam = params.get('t');
-            const typeParam = params.get('type');
-            if (typeParam) query.set('type', typeParam);
-            if (tParam) query.set('t', tParam);
-
+            const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
+            const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
             const goPath = getGoPath(window.location.origin);
-            const suffix = query.toString();
-            window.location.href = `${goPath}/${encodeURIComponent(vParam)}${suffix ? `?${suffix}` : ''}`;
+            window.location.href = `${goPath}?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
         }
     }, []);
 
