@@ -3,18 +3,12 @@
 import { useState, useEffect } from 'react';
 
 
-function getGoPath(origin: string): string {
-    try {
-        const { hostname } = new URL(origin);
-        return hostname.endsWith('github.io') ? '/yt/go' : '/go';
-    } catch {
-        return '/go';
-    }
+function resolveGoPath(hostname: string): string {
+    return hostname.endsWith('github.io') ? '/yt/go/' : '/go/';
 }
 
-function buildGoUrl(origin: string, v: string, typeParam: string, t: string): string {
-    const goPath = getGoPath(origin);
-    let redirectUrl = `${origin}${goPath}?v=${encodeURIComponent(v)}`;
+function buildGoUrl(origin: string, hostname: string, v: string, typeParam: string, t: string): string {
+    let redirectUrl = `${origin}${resolveGoPath(hostname)}?v=${encodeURIComponent(v)}`;
 
     if (typeParam) {
         redirectUrl += `&type=${encodeURIComponent(typeParam)}`;
@@ -41,7 +35,7 @@ export default function Home() {
         if (vParam) {
             const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
             const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
-            const goPath = getGoPath(window.location.origin);
+            const goPath = resolveGoPath(window.location.hostname);
             window.location.href = `${goPath}?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
         }
     }, []);
@@ -95,7 +89,7 @@ export default function Home() {
         }
 
         const finalT = time || paramT;
-        const link = buildGoUrl(window.location.origin, v, type, finalT);
+        const link = buildGoUrl(window.location.origin, window.location.hostname, v, type, finalT);
 
         setOutput({
             html: `<a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`,
