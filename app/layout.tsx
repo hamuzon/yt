@@ -1,11 +1,6 @@
 import './globals.css'
-import type { Metadata } from 'next'
 import Footer from '@/components/Footer'
 
-export const metadata: Metadata = {
-    title: 'YouTube Link Service',
-    description: 'Generate easy YouTube links and tools',
-}
 
 export default function RootLayout({
     children,
