@@ -2,9 +2,6 @@ interface Env {
     ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
-function resolveGoPath(hostname: string): string {
-    return hostname.endsWith('github.io') ? '/yt/go/' : '/go/';
-}
 
 function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -37,7 +34,14 @@ function redirectResponse(url: string) {
 }
 
 function normalizePath(pathname: string) {
-    const path = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+    return pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+}
+
+function localPath(pathname: string) {
+    const path = normalizePath(pathname);
+    if (path === '/yt') {
+        return '/';
+    }
     if (path.startsWith('/yt/')) {
         return path.slice(3);
     }
@@ -67,20 +71,20 @@ export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         try {
             const url = new URL(request.url);
-            const normalizedPath = normalizePath(url.pathname);
-            const pathVideoId = extractVideoIdFromPath(normalizedPath);
+            const routedPath = localPath(url.pathname);
+            const pathVideoId = extractVideoIdFromPath(routedPath);
             const v = url.searchParams.get('v') || pathVideoId;
 
-            if ((normalizedPath === '/' || normalizedPath === '/yt' || !!pathVideoId) && v) {
+            if ((routedPath === '/' || !!pathVideoId) && v) {
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
                 const ua = request.headers.get('user-agent') || '';
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
-            if (normalizedPath === '/go') {
+            if (routedPath === '/go') {
                 if (!v) {
-                    return new Response('YouTube ID required', { status: 400 });
+                    return notFoundResponse(request, env);
                 }
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
@@ -88,21 +92,6 @@ export default {
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
-            if (normalizedPath === '/yt/go') {
-                if (!v) {
-                    return new Response('YouTube ID required', { status: 400 });
-                }
-                const typeParam = url.searchParams.get('type') || '';
-                const t = url.searchParams.get('t') || '';
-                const ua = request.headers.get('user-agent') || '';
-                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
-            }
-
-            if (normalizedPath === '/yt') {
-                const target = new URL(resolveGoPath(url.hostname), url.origin);
-                target.search = url.search;
-                return redirectResponse(target.toString());
-            }
 
             const assetResponse = await env.ASSETS.fetch(request);
             if (assetResponse.status === 404) {
