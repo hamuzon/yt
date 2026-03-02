@@ -32,10 +32,6 @@ function redirectResponse(url: string) {
     return Response.redirect(url, 302);
 }
 
-function notFoundResponse() {
-    return new Response('Not Found', { status: 404 });
-}
-
 function normalizePath(pathname: string) {
     const path = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
     if (path.startsWith('/yt/')) {
@@ -44,14 +40,34 @@ function normalizePath(pathname: string) {
     return path;
 }
 
+function extractVideoIdFromPath(path: string) {
+    const match = path.match(/^\/([A-Za-z0-9_-]{11})$/);
+    return match ? match[1] : '';
+}
+
+async function notFoundResponse(request: Request, env: Env) {
+    const notFoundUrl = new URL('/404.html', request.url);
+    const fallback = await env.ASSETS.fetch(new Request(notFoundUrl.toString(), request));
+
+    if (fallback.ok) {
+        return new Response(fallback.body, {
+            status: 404,
+            headers: fallback.headers,
+        });
+    }
+
+    return new Response('Not Found', { status: 404 });
+}
+
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         try {
             const url = new URL(request.url);
             const normalizedPath = normalizePath(url.pathname);
-            const v = url.searchParams.get('v');
+            const pathVideoId = extractVideoIdFromPath(normalizedPath);
+            const v = url.searchParams.get('v') || pathVideoId;
 
-            if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
+            if ((normalizedPath === '/' || normalizedPath === '/yt' || !!pathVideoId) && v) {
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
                 const ua = request.headers.get('user-agent') || '';
@@ -76,13 +92,13 @@ export default {
 
             const assetResponse = await env.ASSETS.fetch(request);
             if (assetResponse.status === 404) {
-                return notFoundResponse();
+                return notFoundResponse(request, env);
             }
 
             return assetResponse;
         } catch (error) {
             console.error('Worker request handling failed:', error);
-            return notFoundResponse();
+            return notFoundResponse(request, env);
         }
     },
 };
