@@ -2,6 +2,10 @@ interface Env {
     ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
+function resolveGoPath(hostname: string): string {
+    return hostname.endsWith('github.io') ? '/yt/go/' : '/go/';
+}
+
 function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
 
@@ -84,8 +88,18 @@ export default {
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
+            if (normalizedPath === '/yt/go') {
+                if (!v) {
+                    return new Response('YouTube ID required', { status: 400 });
+                }
+                const typeParam = url.searchParams.get('type') || '';
+                const t = url.searchParams.get('t') || '';
+                const ua = request.headers.get('user-agent') || '';
+                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+            }
+
             if (normalizedPath === '/yt') {
-                const target = new URL('/go/', url.origin);
+                const target = new URL(resolveGoPath(url.hostname), url.origin);
                 target.search = url.search;
                 return redirectResponse(target.toString());
             }
