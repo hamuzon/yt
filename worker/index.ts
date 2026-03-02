@@ -32,6 +32,10 @@ function redirectResponse(url: string) {
     return Response.redirect(url, 302);
 }
 
+function notFoundResponse() {
+    return new Response('Not Found', { status: 404 });
+}
+
 function normalizePath(pathname: string) {
     const path = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
     if (path.startsWith('/yt/')) {
@@ -45,12 +49,7 @@ export default {
         try {
             const url = new URL(request.url);
             const normalizedPath = normalizePath(url.pathname);
-
-        const v = url.searchParams.get('v');
-        if (normalizedPath === '/go') {
-            if (!v) {
-                return new Response('YouTube ID required', { status: 400 });
-            }
+            const v = url.searchParams.get('v');
 
             if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
                 const typeParam = url.searchParams.get('type') || '';
@@ -59,18 +58,21 @@ export default {
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
-        if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
-            const typeParam = url.searchParams.get('type') || '';
-            const t = url.searchParams.get('t') || '';
-            const ua = request.headers.get('user-agent') || '';
-            return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
-        }
+            if (normalizedPath === '/go') {
+                if (!v) {
+                    return new Response('YouTube ID required', { status: 400 });
+                }
+                const typeParam = url.searchParams.get('type') || '';
+                const t = url.searchParams.get('t') || '';
+                const ua = request.headers.get('user-agent') || '';
+                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+            }
 
-        if (normalizedPath === '/yt') {
-            const target = new URL('/go', url.origin);
-            target.search = url.search;
-            return redirectResponse(target.toString());
-        }
+            if (normalizedPath === '/yt') {
+                const target = new URL('/go', url.origin);
+                target.search = url.search;
+                return redirectResponse(target.toString());
+            }
 
             const assetResponse = await env.ASSETS.fetch(request);
             if (assetResponse.status === 404) {
