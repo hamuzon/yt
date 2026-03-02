@@ -42,8 +42,9 @@ function normalizePath(pathname: string) {
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
-        const url = new URL(request.url);
-        const normalizedPath = normalizePath(url.pathname);
+        try {
+            const url = new URL(request.url);
+            const normalizedPath = normalizePath(url.pathname);
 
         const v = url.searchParams.get('v');
         if (normalizedPath === '/go') {
@@ -51,11 +52,12 @@ export default {
                 return new Response('YouTube ID required', { status: 400 });
             }
 
-            const typeParam = url.searchParams.get('type') || '';
-            const t = url.searchParams.get('t') || '';
-            const ua = request.headers.get('user-agent') || '';
-            return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
-        }
+            if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
+                const typeParam = url.searchParams.get('type') || '';
+                const t = url.searchParams.get('t') || '';
+                const ua = request.headers.get('user-agent') || '';
+                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+            }
 
         if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
             const typeParam = url.searchParams.get('type') || '';
@@ -70,6 +72,15 @@ export default {
             return redirectResponse(target.toString());
         }
 
-        return env.ASSETS.fetch(request);
+            const assetResponse = await env.ASSETS.fetch(request);
+            if (assetResponse.status === 404) {
+                return notFoundResponse();
+            }
+
+            return assetResponse;
+        } catch (error) {
+            console.error('Worker request handling failed:', error);
+            return notFoundResponse();
+        }
     },
 };
