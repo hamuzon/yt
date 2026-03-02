@@ -29,12 +29,14 @@ function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
 }
 
 function redirectResponse(url: string) {
-    return new Response(null, {
-        status: 302,
-        headers: {
-            Location: url,
-            'Cache-Control': 'no-store',
-        },
+    return Response.redirect(url, 302);
+}
+
+
+function notFoundResponse() {
+    return new Response('404 Not Found', {
+        status: 404,
+        headers: { 'Cache-Control': 'no-store' },
     });
 }
 
@@ -48,27 +50,44 @@ function normalizePath(pathname: string) {
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
-        const url = new URL(request.url);
-        const normalizedPath = normalizePath(url.pathname);
+        try {
+            const url = new URL(request.url);
+            const normalizedPath = normalizePath(url.pathname);
 
-        if (normalizedPath === '/go') {
             const v = url.searchParams.get('v');
-            if (!v) {
-                return redirectResponse(`${url.origin}/`);
+            if (normalizedPath === '/go') {
+                if (!v) {
+                    return new Response('YouTube ID required', { status: 400 });
+                }
+
+                const typeParam = url.searchParams.get('type') || '';
+                const t = url.searchParams.get('t') || '';
+                const ua = request.headers.get('user-agent') || '';
+                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
-            const typeParam = url.searchParams.get('type') || '';
-            const t = url.searchParams.get('t') || '';
-            const ua = request.headers.get('user-agent') || '';
-            return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
-        }
+            if ((normalizedPath === '/' || normalizedPath === '/yt') && v) {
+                const typeParam = url.searchParams.get('type') || '';
+                const t = url.searchParams.get('t') || '';
+                const ua = request.headers.get('user-agent') || '';
+                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+            }
 
-        if (normalizedPath === '/yt') {
-            const target = new URL('/go', url.origin);
-            target.search = url.search;
-            return redirectResponse(target.toString());
-        }
+            if (normalizedPath === '/yt') {
+                const target = new URL('/go', url.origin);
+                target.search = url.search;
+                return redirectResponse(target.toString());
+            }
 
-        return env.ASSETS.fetch(request);
+            const assetResponse = await env.ASSETS.fetch(request);
+            if (assetResponse.status === 404) {
+                return notFoundResponse();
+            }
+
+            return assetResponse;
+        } catch (error) {
+            console.error('Worker request handling failed:', error);
+            return notFoundResponse();
+        }
     },
 };
