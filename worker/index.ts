@@ -38,6 +38,11 @@ function redirectResponse(url: string) {
     });
 }
 
+function extractVideoIdFromPath(pathname: string) {
+    const match = pathname.match(/^\/(?:(?:go|yt)\/)?([a-zA-Z0-9_-]{11})$/);
+    return match ? match[1] : '';
+}
+
 function normalizePath(pathname: string) {
     const path = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
     if (path.startsWith('/yt/')) {
@@ -61,6 +66,14 @@ export default {
             const t = url.searchParams.get('t') || '';
             const ua = request.headers.get('user-agent') || '';
             return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+        }
+
+        const videoIdFromPath = extractVideoIdFromPath(normalizedPath);
+        if (videoIdFromPath) {
+            const typeParam = url.searchParams.get('type') || '';
+            const t = url.searchParams.get('t') || '';
+            const ua = request.headers.get('user-agent') || '';
+            return redirectResponse(buildRedirectUrl(videoIdFromPath, typeParam, t, ua));
         }
 
         if (normalizedPath === '/yt') {
