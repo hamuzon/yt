@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
 function resolveGoPath(hostname: string): string {
@@ -60,11 +61,11 @@ export default function Home() {
             if (input.startsWith("http")) {
                 const urlObj = new URL(input);
                 const host = urlObj.hostname;
-                if (host.includes("youtube.com") || host.includes("m.youtube.com") || host.includes("music.youtube.com")) {
+                if (isYouTubeHost(host)) {
                     if (urlObj.pathname.startsWith("/watch")) {
                         const vFromUrl = urlObj.searchParams.get("v");
                         if (vFromUrl) v = vFromUrl;
-                        if (host.includes("music.youtube.com")) type = "m";
+                        if (isMusicYouTubeHost(host)) type = "m";
                     }
                     if (urlObj.pathname.startsWith("/shorts/")) {
                         v = urlObj.pathname.split("/shorts/")[1].split("/")[0];

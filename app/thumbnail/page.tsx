@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { isYouTubeHost } from '../lib/youtube';
 
 export default function ThumbnailPage() {
     const [inputUrl, setInputUrl] = useState('');
@@ -21,7 +22,7 @@ export default function ThumbnailPage() {
                 const id = u.pathname.split('/')[1];
                 if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
             }
-            if (u.hostname.includes('youtube.com')) {
+            if (isYouTubeHost(u.hostname)) {
                 const v = u.searchParams.get('v');
                 if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
 
