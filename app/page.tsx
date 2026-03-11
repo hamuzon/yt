@@ -61,9 +61,8 @@ export default function Home() {
                 const urlObj = new URL(input);
                 const host = urlObj.hostname;
                 const isYouTubeDomain =
-                    host.includes("youtube.com") ||
-                    host.includes("youtube.co.jp") ||
-                    host.includes("youtube.jp");
+                    host.includes("youtube.com") || host.includes("m.youtube.com") || host.includes("music.youtube.com") ||
+                    host.includes("youtube.co.jp") || host.includes("youtube.jp");
 
                 if (isYouTubeDomain) {
                     if (urlObj.pathname.startsWith("/watch")) {
