@@ -61,7 +61,9 @@ export default function Home() {
             if (input.startsWith("http")) {
                 const urlObj = new URL(input);
                 const host = urlObj.hostname;
-                if (isYouTubeHost(host)) {
+                const isYouTubeDomain = isYouTubeHost(host);
+
+                if (isYouTubeDomain) {
                     if (urlObj.pathname.startsWith("/watch")) {
                         const vFromUrl = urlObj.searchParams.get("v");
                         if (vFromUrl) v = vFromUrl;
