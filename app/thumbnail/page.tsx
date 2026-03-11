@@ -21,7 +21,7 @@ export default function ThumbnailPage() {
                 const id = u.pathname.split('/')[1];
                 if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
             }
-            if (u.hostname.includes('youtube.com')) {
+            if (u.hostname.includes('youtube.com') || u.hostname.includes('youtube.co.jp') || u.hostname.includes('youtube.jp')) {
                 const v = u.searchParams.get('v');
                 if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
 

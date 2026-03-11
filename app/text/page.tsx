@@ -23,9 +23,9 @@ export default function TextPage() {
 
             if (u.hostname === 'youtu.be') {
                 videoId = u.pathname.slice(1);
-            } else if (u.hostname === 'music.youtube.com' && u.pathname === '/watch') {
+            } else if (u.hostname.includes('music.youtube.') && u.pathname === '/watch') {
                 videoId = u.searchParams.get('v');
-            } else if (u.hostname.includes('youtube.com')) {
+            } else if (u.hostname.includes('youtube.com') || u.hostname.includes('youtube.co.jp') || u.hostname.includes('youtube.jp')) {
                 if (u.pathname === '/watch') {
                     videoId = u.searchParams.get('v');
                 } else if (u.pathname.startsWith('/shorts/')) {

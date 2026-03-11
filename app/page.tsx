@@ -60,11 +60,16 @@ export default function Home() {
             if (input.startsWith("http")) {
                 const urlObj = new URL(input);
                 const host = urlObj.hostname;
-                if (host.includes("youtube.com") || host.includes("m.youtube.com") || host.includes("music.youtube.com")) {
+                const isYouTubeDomain =
+                    host.includes("youtube.com") ||
+                    host.includes("youtube.co.jp") ||
+                    host.includes("youtube.jp");
+
+                if (isYouTubeDomain) {
                     if (urlObj.pathname.startsWith("/watch")) {
                         const vFromUrl = urlObj.searchParams.get("v");
                         if (vFromUrl) v = vFromUrl;
-                        if (host.includes("music.youtube.com")) type = "m";
+                        if (host.includes("music.youtube.")) type = "m";
                     }
                     if (urlObj.pathname.startsWith("/shorts/")) {
                         v = urlObj.pathname.split("/shorts/")[1].split("/")[0];
