@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import { normalizeDisplayPath } from './lib/pageTitle';
 import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
@@ -26,17 +24,12 @@ function buildGoUrl(origin: string, hostname: string, v: string, typeParam: stri
 
 
 export default function Home() {
-    const pathname = usePathname();
     const [videoInput, setVideoInput] = useState('');
     const [t, setT] = useState('');
     const [output, setOutput] = useState<{ html: string; link: string } | null>(null);
     const [error, setError] = useState('');
     const [copyBtnText, setCopyBtnText] = useState('📋 コピー');
 
-    useEffect(() => {
-        const displayPath = normalizeDisplayPath(pathname);
-        document.title = displayPath ? `${displayPath} | YouTube Link Service` : 'YouTube Link Service';
-    }, [pathname]);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);

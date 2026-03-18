@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { formatDocumentTitle } from '../lib/pageTitle';
+import { useState } from 'react';
 import { isMusicYouTubeHost, isYouTubeHost } from '../lib/youtube';
 
 export default function TextPage() {
-    const pathname = usePathname();
     const [linkText, setLinkText] = useState('');
     const [inputUrl, setInputUrl] = useState('');
     const [outputMarkdown, setOutputMarkdown] = useState('');
@@ -46,9 +43,6 @@ export default function TextPage() {
         }
     };
 
-    useEffect(() => {
-        document.title = formatDocumentTitle(pathname, 'YouTube Markdown Link');
-    }, [pathname]);
 
     const handleConvert = () => {
         const text = linkText.trim() || 'リンク';

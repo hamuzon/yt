@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { formatDocumentTitle } from '../lib/pageTitle';
+import { useState } from 'react';
 import { isYouTubeHost } from '../lib/youtube';
 
 export default function ThumbnailPage() {
-    const pathname = usePathname();
     const [inputUrl, setInputUrl] = useState('');
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
@@ -44,9 +41,6 @@ export default function ThumbnailPage() {
         return null;
     };
 
-    useEffect(() => {
-        document.title = formatDocumentTitle(pathname, 'YouTube サムネURL取得');
-    }, [pathname]);
 
     const handleGenerate = () => {
         const id = getVideoId(inputUrl);
