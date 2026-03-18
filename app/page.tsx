@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
@@ -120,7 +120,7 @@ export default function Home() {
                 <input
                     type="text"
                     value={videoInput}
-                    onChange={(e) => setVideoInput(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setVideoInput(e.target.value)}
                     placeholder="動画IDまたはURLを入力"
                 />
             </div>
@@ -128,7 +128,7 @@ export default function Home() {
                 <input
                     type="text"
                     value={t}
-                    onChange={(e) => setT(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setT(e.target.value)}
                     placeholder="再生開始時間 t=xx（任意）"
                 />
             </div>
