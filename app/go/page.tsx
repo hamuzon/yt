@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+
+// OG/Twitter tags are intentionally suppressed here.
+// On Cloudflare, the Worker intercepts bot requests and returns YouTube OGP HTML directly.
+export const metadata: Metadata = {
+  openGraph: null,
+  twitter: null,
+};
+
 const redirectScript = `
 (() => {
   const params = new URLSearchParams(window.location.search);
