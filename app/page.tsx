@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { formatHeading, normalizeDisplayPath } from './lib/pageTitle';
+import { normalizeDisplayPath } from './lib/pageTitle';
 import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
@@ -122,7 +122,7 @@ export default function Home() {
 
     return (
         <div className="glass-card">
-            <h1>{formatHeading(pathname, '🎬 YouTube Link')}</h1>
+            <h1>🎬 YouTube Link</h1>
             <div className="input-group">
                 <input
                     type="text"

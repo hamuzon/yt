@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { formatDocumentTitle, formatHeading } from '../lib/pageTitle';
+import { formatDocumentTitle } from '../lib/pageTitle';
 import { isYouTubeHost } from '../lib/youtube';
 
 export default function ThumbnailPage() {
@@ -68,7 +68,7 @@ export default function ThumbnailPage() {
 
     return (
         <div className="glass-card">
-            <h1>{formatHeading(pathname, 'YouTube サムネURL取得')}</h1>
+            <h1>YouTube サムネURL取得</h1>
 
             <div className="input-group">
                 <input
