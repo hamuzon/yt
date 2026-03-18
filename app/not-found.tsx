@@ -8,7 +8,7 @@ export default function NotFound() {
     const [backText, setBackText] = useState('ホームに戻る / Back to Home');
 
     useEffect(() => {
-        document.title = '404 not found / ページが見つかりません';
+        document.title = '404 not found / ページが見つかりません | YouTube Link Service';
         const path = window.location.pathname;
         const lowerPath = path.toLowerCase();
 

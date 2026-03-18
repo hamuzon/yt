@@ -3,7 +3,10 @@ import Footer from '@/components/Footer'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'YouTube Link Service',
+    title: {
+        default: 'YouTube Link Service',
+        template: '%s | YouTube Link Service',
+    },
 }
 
 

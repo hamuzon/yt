@@ -1,7 +1,7 @@
 export default function Head() {
     return (
         <>
-            <title>リダイレクト</title>
+            <title>リダイレクト | YouTube Link Service</title>
         </>
     );
 }
