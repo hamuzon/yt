@@ -55,15 +55,21 @@ function extractVideoIdFromPath(path: string) {
 
 async function notFoundResponse(request: Request, env: Env) {
     try {
-        const notFoundUrl = new URL('/404.html', request.url);
-        // Do not pass the original request object as init because it can cause TypeError on construction
-        // "TypeError: Cannot construct a Request with a Request object that has already been used."
-        const fallback = await env.ASSETS.fetch(new Request(notFoundUrl.toString()));
+        const notFoundUrl1 = new URL('/404/index.html', request.url);
+        const notFoundUrl2 = new URL('/404.html', request.url);
+        
+        let fallback = await env.ASSETS.fetch(new Request(notFoundUrl1.toString()));
+        if (fallback.status !== 200) {
+            fallback = await env.ASSETS.fetch(new Request(notFoundUrl2.toString()));
+        }
 
-        if (fallback.ok) {
-            return new Response(fallback.body, {
+        if (fallback.status === 200 || fallback.status === 404) {
+            const html = await fallback.text();
+            return new Response(html, {
                 status: 404,
-                headers: fallback.headers,
+                headers: {
+                    'Content-Type': 'text/html;charset=UTF-8'
+                }
             });
         }
     } catch (e) {
