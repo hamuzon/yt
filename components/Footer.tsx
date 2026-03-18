@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-const SITE_TITLE = 'YouTube Link Service';
-
 const Footer = () => {
     const [footerHTML, setFooterHTML] = useState('');
 
@@ -23,9 +21,11 @@ const Footer = () => {
             } else if (hostname.includes('hamusata.f5.si')) {
                 content += '<a href="https://hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>';
             } else {
-                const pageTitle = document.title.trim();
+                const pageTitle = document.title.trim() || document.querySelector('title')?.textContent?.trim() || '';
 
-                content += pageTitle || SITE_TITLE;
+                if (pageTitle) {
+                    content += pageTitle;
+                }
             }
 
             setFooterHTML(content);
