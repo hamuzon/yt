@@ -2,6 +2,52 @@ interface Env {
     ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
+function isBot(ua: string): boolean {
+    return /Twitterbot|Discordbot|Slackbot|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Googlebot|bingbot|Applebot|curl|wget/i.test(ua);
+}
+
+async function buildOgHtml(v: string, requestUrl: string): Promise<string> {
+    const pageUrl = new URL('/go', requestUrl);
+    pageUrl.searchParams.set('v', v);
+
+    let title = 'YouTube Video';
+    let description = '';
+    let thumbnail = `https://i.ytimg.com/vi/${v}/maxresdefault.jpg`;
+
+    try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(v)}&format=json`;
+        const res = await fetch(oembedUrl);
+        if (res.ok) {
+            const data = await res.json() as { title?: string; author_name?: string; thumbnail_url?: string };
+            title = data.title || title;
+            description = data.author_name ? `by ${data.author_name}` : '';
+            thumbnail = data.thumbnail_url || thumbnail;
+        }
+    } catch {
+        // fallback to defaults
+    }
+
+    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${esc(title)}</title>
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:image" content="${esc(thumbnail)}">
+<meta property="og:url" content="${esc(pageUrl.toString())}">
+<meta property="og:type" content="video.other">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(thumbnail)}">
+</head>
+<body></body>
+</html>`;
+}
+
 
 function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -54,26 +100,27 @@ function extractVideoIdFromPath(path: string) {
 }
 
 async function notFoundResponse(request: Request, env: Env) {
-    try {
-        const notFoundUrl1 = new URL('/404/index.html', request.url);
-        const notFoundUrl2 = new URL('/404.html', request.url);
-        
-        let fallback = await env.ASSETS.fetch(new Request(notFoundUrl1.toString()));
-        if (fallback.status !== 200) {
-            fallback = await env.ASSETS.fetch(new Request(notFoundUrl2.toString()));
-        }
+    // Next.js static export outputs /_not-found/index.html
+    const candidates = [
+        '/_not-found/index.html',
+        '/404/index.html',
+        '/404.html',
+    ];
 
-        if (fallback.status === 200 || fallback.status === 404) {
-            const html = await fallback.text();
-            return new Response(html, {
-                status: 404,
-                headers: {
-                    'Content-Type': 'text/html;charset=UTF-8'
-                }
-            });
+    for (const path of candidates) {
+        try {
+            const notFoundUrl = new URL(path, request.url);
+            const fallback = await env.ASSETS.fetch(new Request(notFoundUrl.toString()));
+            if (fallback.status === 200) {
+                const html = await fallback.text();
+                return new Response(html, {
+                    status: 404,
+                    headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+                });
+            }
+        } catch (e) {
+            console.error('ASSETS fallback fetch failed for', path, e);
         }
-    } catch (e) {
-        console.error('ASSETS fallback fetch failed', e);
     }
 
     return new Response('Not Found', { status: 404 });
@@ -98,9 +145,16 @@ export default {
                 if (!v) {
                     return notFoundResponse(request, env);
                 }
+                const ua = request.headers.get('user-agent') || '';
+                if (isBot(ua)) {
+                    const html = await buildOgHtml(v, request.url);
+                    return new Response(html, {
+                        status: 200,
+                        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+                    });
+                }
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
-                const ua = request.headers.get('user-agent') || '';
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
