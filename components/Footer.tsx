@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 
 const SITE_TITLE = 'YouTube Link Service';
-const KNOWN_PATHS = ['/', '/go', '/go/', '/yt', '/yt/', '/thumbnail', '/thumbnail/', '/text', '/text/'];
 
 const Footer = () => {
     const [footerHTML, setFooterHTML] = useState('');
@@ -12,7 +11,6 @@ const Footer = () => {
         const baseYear = 2025;
         const currentYear = new Date().getFullYear();
         const hostname = window.location.hostname;
-        const pathname = window.location.pathname.toLowerCase();
         const copyrightYear = baseYear + (currentYear > baseYear ? `~${currentYear}` : '');
 
         const updateFooter = () => {
@@ -27,11 +25,7 @@ const Footer = () => {
             } else {
                 const pageTitle = document.title.trim();
 
-                if (pageTitle) {
-                    content += pageTitle;
-                } else if (KNOWN_PATHS.includes(pathname)) {
-                    content += SITE_TITLE;
-                }
+                content += pageTitle || SITE_TITLE;
             }
 
             setFooterHTML(content);
