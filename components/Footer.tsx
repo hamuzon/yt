@@ -3,25 +3,6 @@
 import { useEffect, useState } from 'react';
 
 const SITE_TITLE = 'YouTube Link Service';
-const TITLE_SUFFIX = ` | ${SITE_TITLE}`;
-
-function normalizePageTitle(rawTitle: string): string {
-    const trimmedTitle = rawTitle.trim();
-
-    if (!trimmedTitle) {
-        return '';
-    }
-
-    if (trimmedTitle === SITE_TITLE) {
-        return SITE_TITLE;
-    }
-
-    if (trimmedTitle.endsWith(TITLE_SUFFIX)) {
-        return trimmedTitle.slice(0, -TITLE_SUFFIX.length);
-    }
-
-    return trimmedTitle;
-}
 
 const Footer = () => {
     const [footerHTML, setFooterHTML] = useState('');
@@ -43,7 +24,7 @@ const Footer = () => {
             content += `<a href="https://hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>`;
         } else {
             const knownPaths = ['/', '/go', '/go/', '/yt', '/yt/', '/thumbnail', '/thumbnail/', '/text', '/text/'];
-            const pageTitle = normalizePageTitle(document.title);
+            const pageTitle = document.title.trim();
 
             if (pageTitle) {
                 content += pageTitle;
