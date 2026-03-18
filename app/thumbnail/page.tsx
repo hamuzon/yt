@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { formatDocumentTitle, formatHeading } from '../lib/pageTitle';
 import { isYouTubeHost } from '../lib/youtube';
 
 export default function ThumbnailPage() {
+    const pathname = usePathname();
     const [inputUrl, setInputUrl] = useState('');
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
@@ -41,6 +44,10 @@ export default function ThumbnailPage() {
         return null;
     };
 
+    useEffect(() => {
+        document.title = formatDocumentTitle(pathname, 'YouTube サムネURL取得');
+    }, [pathname]);
+
     const handleGenerate = () => {
         const id = getVideoId(inputUrl);
         if (!id) {
@@ -61,7 +68,7 @@ export default function ThumbnailPage() {
 
     return (
         <div className="glass-card">
-            <h1>YouTube サムネURL取得</h1>
+            <h1>{formatHeading(pathname, 'YouTube サムネURL取得')}</h1>
 
             <div className="input-group">
                 <input

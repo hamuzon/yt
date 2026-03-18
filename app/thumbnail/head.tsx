@@ -1,7 +1,7 @@
 export default function Head() {
     return (
         <>
-            <title>サムネイル取得 | YouTube Link Service</title>
+            <title>YouTube サムネURL取得 | YouTube Link Service</title>
         </>
     );
 }

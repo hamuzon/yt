@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { formatDocumentTitle, formatHeading } from '../lib/pageTitle';
 import { isMusicYouTubeHost, isYouTubeHost } from '../lib/youtube';
 
 export default function TextPage() {
+    const pathname = usePathname();
     const [linkText, setLinkText] = useState('');
     const [inputUrl, setInputUrl] = useState('');
     const [outputMarkdown, setOutputMarkdown] = useState('');
@@ -43,6 +46,10 @@ export default function TextPage() {
         }
     };
 
+    useEffect(() => {
+        document.title = formatDocumentTitle(pathname, 'YouTube Markdown Link');
+    }, [pathname]);
+
     const handleConvert = () => {
         const text = linkText.trim() || 'リンク';
         const link = getMinimalYouTubeLink(inputUrl.trim(), timeOption);
@@ -63,7 +70,7 @@ export default function TextPage() {
 
     return (
         <div className="glass-card">
-            <h1>YouTube 共有リンク Markdown 出力</h1>
+            <h1>{formatHeading(pathname, 'YouTube Markdown Link')}</h1>
             <p>入力文字と YouTube URL から Markdown 形式で短縮リンクを生成します<br />
                 Generate short Markdown link from text & YouTube URL</p>
 
