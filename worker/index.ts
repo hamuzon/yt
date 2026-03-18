@@ -126,6 +126,50 @@ async function notFoundResponse(request: Request, env: Env) {
     return new Response('Not Found', { status: 404 });
 }
 
+async function handleGoRequest(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const v = url.searchParams.get('v') || '';
+    const typeParam = url.searchParams.get('type') || '';
+    const t = url.searchParams.get('t') || '';
+
+    if (!v) return notFoundResponse(request, env);
+
+    const ua = request.headers.get('user-agent') || '';
+
+    // Bots get an OGP HTML page so Twitter/Discord/etc. can render cards
+    if (isBot(ua)) {
+        const html = await buildOgHtml(v, request.url);
+        return new Response(html, {
+            status: 200,
+            headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        });
+    }
+
+    // Everyone else gets redirected directly
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+
+    let redirectUrl: string;
+    switch (typeParam) {
+        case 'm':
+            redirectUrl = `https://music.youtube.com/watch?v=${v}`;
+            break;
+        case 's':
+            redirectUrl = isMobile
+                ? `https://m.youtube.com/shorts/${v}`
+                : `https://www.youtube.com/shorts/${v}`;
+            break;
+        default:
+            redirectUrl = `https://youtu.be/${v}`;
+    }
+
+    if (t) {
+        const sep = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl += `${sep}t=${encodeURIComponent(t)}`;
+    }
+
+    return Response.redirect(redirectUrl, 302);
+}
+
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         try {
@@ -142,20 +186,7 @@ export default {
             }
 
             if (routedPath === '/go') {
-                if (!v) {
-                    return notFoundResponse(request, env);
-                }
-                const ua = request.headers.get('user-agent') || '';
-                if (isBot(ua)) {
-                    const html = await buildOgHtml(v, request.url);
-                    return new Response(html, {
-                        status: 200,
-                        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-                    });
-                }
-                const typeParam = url.searchParams.get('type') || '';
-                const t = url.searchParams.get('t') || '';
-                return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
+                return handleGoRequest(request, env);
             }
 
 

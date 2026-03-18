@@ -63,10 +63,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 const redirectScript = `
 (() => {
-  const params = new URLSearchParams(window.location.search);
-  const v = params.get('v') || '';
-  const typeParam = params.get('type') || '';
-  const t = params.get('t') || '';
+  const url = new URL(window.location.href);
+  const v = url.searchParams.get('v') || '';
+  const typeParam = url.searchParams.get('type') || '';
+  const t = url.searchParams.get('t') || '';
 
   if (!v) {
     window.location.replace('/');
@@ -79,20 +79,20 @@ const redirectScript = `
   let redirectUrl;
   switch (typeParam) {
     case 'm':
-      redirectUrl = 'https://music.youtube.com/watch?v=' + encodeURIComponent(v);
+      redirectUrl = \`https://music.youtube.com/watch?v=\${v}\`;
       break;
     case 's':
       redirectUrl = isMobile
-        ? 'https://m.youtube.com/shorts/' + encodeURIComponent(v)
-        : 'https://www.youtube.com/shorts/' + encodeURIComponent(v);
+        ? \`https://m.youtube.com/shorts/\${v}\`
+        : \`https://www.youtube.com/shorts/\${v}\`;
       break;
     default:
-      redirectUrl = 'https://youtu.be/' + encodeURIComponent(v);
+      redirectUrl = \`https://youtu.be/\${v}\`;
   }
 
   if (t) {
     const sep = redirectUrl.includes('?') ? '&' : '?';
-    redirectUrl += sep + 't=' + encodeURIComponent(t);
+    redirectUrl += \`\${sep}t=\${encodeURIComponent(t)}\`;
   }
 
   window.location.replace(redirectUrl);
