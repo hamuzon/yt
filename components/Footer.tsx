@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 const SITE_TITLE = 'YouTube Link Service';
+const KNOWN_PATHS = ['/', '/go', '/go/', '/yt', '/yt/', '/thumbnail', '/thumbnail/', '/text', '/text/'];
 
 const Footer = () => {
     const [footerHTML, setFooterHTML] = useState('');
@@ -12,28 +13,53 @@ const Footer = () => {
         const currentYear = new Date().getFullYear();
         const hostname = window.location.hostname;
         const pathname = window.location.pathname.toLowerCase();
-
         const copyrightYear = baseYear + (currentYear > baseYear ? `~${currentYear}` : '');
-        let content = `&copy; ${copyrightYear} `;
 
-        if (hostname.includes('hamuzon-jp.f5.si')) {
-            content += `<a href="https://hamuzon-jp.f5.si" target="_blank" rel="noopener noreferrer">@hamuzon</a>`;
-        } else if (hostname.includes('hamuzon.github.io')) {
-            content += `<a href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>`;
-        } else if (hostname.includes('hamusata.f5.si')) {
-            content += `<a href="https://hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>`;
-        } else {
-            const knownPaths = ['/', '/go', '/go/', '/yt', '/yt/', '/thumbnail', '/thumbnail/', '/text', '/text/'];
-            const pageTitle = document.title.trim();
+        const updateFooter = () => {
+            let content = `&copy; ${copyrightYear} `;
 
-            if (pageTitle) {
-                content += pageTitle;
-            } else if (knownPaths.includes(pathname)) {
-                content += SITE_TITLE;
+            if (hostname.includes('hamuzon-jp.f5.si')) {
+                content += '<a href="https://hamuzon-jp.f5.si" target="_blank" rel="noopener noreferrer">@hamuzon</a>';
+            } else if (hostname.includes('hamuzon.github.io')) {
+                content += '<a href="https://hamuzon.github.io" target="_blank" rel="noopener noreferrer">@hamuzon</a>';
+            } else if (hostname.includes('hamusata.f5.si')) {
+                content += '<a href="https://hamusata.f5.si" target="_blank" rel="noopener noreferrer">@hamusata</a>';
+            } else {
+                const pageTitle = document.title.trim();
+
+                if (pageTitle) {
+                    content += pageTitle;
+                } else if (KNOWN_PATHS.includes(pathname)) {
+                    content += SITE_TITLE;
+                }
             }
+
+            setFooterHTML(content);
+        };
+
+        updateFooter();
+
+        const titleElement = document.querySelector('title');
+        const observer = titleElement
+            ? new MutationObserver(() => {
+                updateFooter();
+            })
+            : null;
+
+        if (titleElement && observer) {
+            observer.observe(titleElement, {
+                childList: true,
+                subtree: true,
+                characterData: true,
+            });
         }
 
-        setFooterHTML(content);
+        window.addEventListener('pageshow', updateFooter);
+
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener('pageshow', updateFooter);
+        };
     }, []);
 
     return (
