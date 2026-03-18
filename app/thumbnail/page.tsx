@@ -41,6 +41,7 @@ export default function ThumbnailPage() {
         return null;
     };
 
+
     const handleGenerate = () => {
         const id = getVideoId(inputUrl);
         if (!id) {

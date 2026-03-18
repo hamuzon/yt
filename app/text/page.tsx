@@ -43,6 +43,7 @@ export default function TextPage() {
         }
     };
 
+
     const handleConvert = () => {
         const text = linkText.trim() || 'リンク';
         const link = getMinimalYouTubeLink(inputUrl.trim(), timeOption);
@@ -63,7 +64,7 @@ export default function TextPage() {
 
     return (
         <div className="glass-card">
-            <h1>YouTube 共有リンク Markdown 出力</h1>
+            <h1>YouTube Markdown Link</h1>
             <p>入力文字と YouTube URL から Markdown 形式で短縮リンクを生成します<br />
                 Generate short Markdown link from text & YouTube URL</p>
 

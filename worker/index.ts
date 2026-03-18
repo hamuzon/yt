@@ -54,14 +54,26 @@ function extractVideoIdFromPath(path: string) {
 }
 
 async function notFoundResponse(request: Request, env: Env) {
-    const notFoundUrl = new URL('/404.html', request.url);
-    const fallback = await env.ASSETS.fetch(new Request(notFoundUrl.toString(), request));
+    try {
+        const notFoundUrl1 = new URL('/404/index.html', request.url);
+        const notFoundUrl2 = new URL('/404.html', request.url);
+        
+        let fallback = await env.ASSETS.fetch(new Request(notFoundUrl1.toString()));
+        if (fallback.status !== 200) {
+            fallback = await env.ASSETS.fetch(new Request(notFoundUrl2.toString()));
+        }
 
-    if (fallback.ok) {
-        return new Response(fallback.body, {
-            status: 404,
-            headers: fallback.headers,
-        });
+        if (fallback.status === 200 || fallback.status === 404) {
+            const html = await fallback.text();
+            return new Response(html, {
+                status: 404,
+                headers: {
+                    'Content-Type': 'text/html;charset=UTF-8'
+                }
+            });
+        }
+    } catch (e) {
+        console.error('ASSETS fallback fetch failed', e);
     }
 
     return new Response('Not Found', { status: 404 });

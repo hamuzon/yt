@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
@@ -30,12 +30,13 @@ export default function Home() {
     const [error, setError] = useState('');
     const [copyBtnText, setCopyBtnText] = useState('📋 コピー');
 
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const vParam = params.get("v");
+        const vParam = params.get('v');
         if (vParam) {
-            const tParam = params.get("t") ? `&t=${encodeURIComponent(params.get("t") || '')}` : "";
-            const typeParam = params.get("type") ? `&type=${encodeURIComponent(params.get("type") || '')}` : "";
+            const tParam = params.get('t') ? `&t=${encodeURIComponent(params.get('t') || '')}` : '';
+            const typeParam = params.get('type') ? `&type=${encodeURIComponent(params.get('type') || '')}` : '';
             const goPath = resolveGoPath(window.location.hostname);
             window.location.href = `${goPath}?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
         }
@@ -58,33 +59,33 @@ export default function Home() {
         let paramT: string = '';
 
         try {
-            if (input.startsWith("http")) {
+            if (input.startsWith('http')) {
                 const urlObj = new URL(input);
                 const host = urlObj.hostname;
                 const isYouTubeDomain = isYouTubeHost(host);
 
                 if (isYouTubeDomain) {
-                    if (urlObj.pathname.startsWith("/watch")) {
-                        const vFromUrl = urlObj.searchParams.get("v");
+                    if (urlObj.pathname.startsWith('/watch')) {
+                        const vFromUrl = urlObj.searchParams.get('v');
                         if (vFromUrl) v = vFromUrl;
-                        if (isMusicYouTubeHost(host)) type = "m";
+                        if (isMusicYouTubeHost(host)) type = 'm';
                     }
-                    if (urlObj.pathname.startsWith("/shorts/")) {
-                        v = urlObj.pathname.split("/shorts/")[1].split("/")[0];
-                        type = "s";
+                    if (urlObj.pathname.startsWith('/shorts/')) {
+                        v = urlObj.pathname.split('/shorts/')[1].split('/')[0];
+                        type = 's';
                     }
-                    const tFromUrl = urlObj.searchParams.get("t");
+                    const tFromUrl = urlObj.searchParams.get('t');
                     if (tFromUrl) paramT = tFromUrl;
-                } else if (host === "youtu.be") {
-                    v = urlObj.pathname.replace("/", "");
-                    const tFromUrl = urlObj.searchParams.get("t");
+                } else if (host === 'youtu.be') {
+                    v = urlObj.pathname.replace('/', '');
+                    const tFromUrl = urlObj.searchParams.get('t');
                     if (tFromUrl) paramT = tFromUrl;
                 }
-            } else if (input.includes("?")) {
-                const [id, queryParams] = input.split("?");
+            } else if (input.includes('?')) {
+                const [id, queryParams] = input.split('?');
                 v = id;
                 const p = new URLSearchParams(queryParams);
-                const tFromUrl = p.get("t");
+                const tFromUrl = p.get('t');
                 if (tFromUrl) paramT = tFromUrl;
             }
         } catch (e) {
@@ -119,7 +120,7 @@ export default function Home() {
                 <input
                     type="text"
                     value={videoInput}
-                    onChange={(e) => setVideoInput(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setVideoInput(e.target.value)}
                     placeholder="動画IDまたはURLを入力"
                 />
             </div>
@@ -127,7 +128,7 @@ export default function Home() {
                 <input
                     type="text"
                     value={t}
-                    onChange={(e) => setT(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setT(e.target.value)}
                     placeholder="再生開始時間 t=xx（任意）"
                 />
             </div>
