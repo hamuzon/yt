@@ -51,9 +51,9 @@ export default function NotFoundClient() {
         let thumbnailBackLink = '/thumbnail/';
 
         if (window.location.hostname === 'hamuzon.github.io') {
-            defaultBackLink = 'https://hamuzon.github.io/yt/';
-            textBackLink = 'https://hamuzon.github.io/yt/text/';
-            thumbnailBackLink = 'https://hamuzon.github.io/yt/thumbnail/';
+            defaultBackLink = '/yt/';
+            textBackLink = '/yt/text/';
+            thumbnailBackLink = '/yt/thumbnail/';
         }
 
         if (lowerPath.includes('/text/')) {
@@ -69,13 +69,14 @@ export default function NotFoundClient() {
 
     return (
         <div className="error-page">
-            <div className="error-container">
+            <div className="glass-card">
                 <h1>404</h1>
-                <p>ページが見つかりませんでした。<br />
-                    Page Not Found</p>
-                <Link href={backLink} className="back-btn">
-                    {backText}
-                </Link>
+                <p>ページが見つかりません<br /><span>Sorry, Not Found.</span></p>
+                <div className="flex justify-center mt-4">
+                    <a href={backLink} className="btn btn-secondary auto-width">
+                        {backText}
+                    </a>
+                </div>
             </div>
         </div>
     );
