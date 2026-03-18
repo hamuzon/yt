@@ -51,9 +51,9 @@ export default function NotFoundClient() {
         let thumbnailBackLink = '/thumbnail/';
 
         if (window.location.hostname === 'hamuzon.github.io') {
-            defaultBackLink = '/yt/';
-            textBackLink = '/yt/text/';
-            thumbnailBackLink = '/yt/thumbnail/';
+            defaultBackLink = 'https://hamuzon.github.io/yt/';
+            textBackLink = 'https://hamuzon.github.io/yt/text/';
+            thumbnailBackLink = 'https://hamuzon.github.io/yt/thumbnail/';
         }
 
         if (lowerPath.includes('/text/')) {
