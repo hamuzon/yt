@@ -80,6 +80,9 @@ export default function ThumbnailPage() {
                     <option value="hqdefault">hqdefault（推奨）</option>
                     <option value="mqdefault">mqdefault</option>
                     <option value="default">default（最小）</option>
+                    <option value="1">1.jpg（動画の開始: 120 × 90）</option>
+                    <option value="2">2.jpg（動画の中間: 120 × 90）</option>
+                    <option value="3">3.jpg（動画の終了: 120 × 90）</option>
                 </select>
             </div>
 
