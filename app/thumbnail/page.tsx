@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { isYouTubeHost } from '../lib/youtube';
 
 export default function ThumbnailPage() {
     const [inputUrl, setInputUrl] = useState('');
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
+    const [previewUrl, setPreviewUrl] = useState('');
 
     const getVideoId = (input: string) => {
         if (!input) return null;
@@ -46,10 +48,12 @@ export default function ThumbnailPage() {
         const id = getVideoId(inputUrl);
         if (!id) {
             setOutputUrl('無効なURLまたはID');
+            setPreviewUrl('');
             return;
         }
         const url = `https://i.ytimg.com/vi/${id}/${size}.jpg`;
         setOutputUrl(url);
+        setPreviewUrl(url);
     };
 
     const handleCopy = () => {
@@ -58,6 +62,15 @@ export default function ThumbnailPage() {
                 alert('Copied!');
             });
         }
+    };
+
+    const handlePreviewError = () => {
+        if (!previewUrl.includes('/maxresdefault.jpg')) return;
+        const id = getVideoId(inputUrl);
+        if (!id) return;
+        const fallback = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        setOutputUrl(fallback);
+        setPreviewUrl(fallback);
     };
 
     return (
@@ -80,6 +93,9 @@ export default function ThumbnailPage() {
                     <option value="hqdefault">hqdefault（推奨）</option>
                     <option value="mqdefault">mqdefault</option>
                     <option value="default">default（最小）</option>
+                    <option value="1">1.jpg（動画の開始: 120 × 90）</option>
+                    <option value="2">2.jpg（動画の中間: 120 × 90）</option>
+                    <option value="3">3.jpg（動画の終了: 120 × 90）</option>
                 </select>
             </div>
 
@@ -94,6 +110,19 @@ export default function ThumbnailPage() {
                     readOnly
                     value={outputUrl}
                     placeholder="サムネイルURL"
+                />
+            </div>
+
+            <div className="mt-4">
+                <Image
+                    id="preview"
+                    className="preview"
+                    src={previewUrl}
+                    alt="サムネイルプレビュー"
+                    onError={handlePreviewError}
+                    width={360}
+                    height={202}
+                    style={{ display: previewUrl ? 'block' : 'none', height: 'auto' }}
                 />
             </div>
         </div>

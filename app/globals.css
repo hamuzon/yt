@@ -143,6 +143,15 @@ textarea {
     margin-top: 1rem;
 }
 
+.preview {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    border-radius: 12px;
+    border: 1px solid rgba(59, 47, 47, 0.2);
+    box-shadow: var(--shadow);
+}
+
 .flex {
     display: flex;
 }
