@@ -75,8 +75,8 @@ export default function TextPage() {
     return (
         <div className="glass-card">
             <h1>YouTube Markdown Link</h1>
-            <p>入力文字と YouTube URL から Markdown 形式で短縮リンクを生成します<br />
-                Generate Markdown link from text & YouTube URL</p>
+            <p>入力文字と YouTube URL から Markdown 形式のリンクを生成します<br />
+                Generate a Markdown link from text and a YouTube URL.</p>
 
             <div className="input-group">
                 <input
