@@ -9,9 +9,16 @@ export default function TextPage() {
     const [outputMarkdown, setOutputMarkdown] = useState('');
     const [timeOption, setTimeOption] = useState(true);
 
-    const getMinimalYouTubeLink = (url: string, keepTime: boolean) => {
+    const getYouTubeLink = (input: string, keepTime: boolean) => {
         try {
-            const u = new URL(url);
+            const trimmedInput = input.trim();
+            const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
+
+            if (videoIdPattern.test(trimmedInput)) {
+                return `https://youtu.be/${trimmedInput}`;
+            }
+
+            const u = new URL(trimmedInput);
             let videoId: string | null = null;
             let timeParam = '';
 
@@ -24,6 +31,9 @@ export default function TextPage() {
 
             if (u.hostname === 'youtu.be') {
                 videoId = u.pathname.slice(1);
+            } else if ((u.hostname === 'img.youtube.com' || u.hostname === 'i.ytimg.com') && u.pathname.startsWith('/vi/')) {
+                const parts = u.pathname.split('/');
+                videoId = parts[2] || null;
             } else if (isMusicYouTubeHost(u.hostname) && u.pathname === '/watch') {
                 videoId = u.searchParams.get('v');
             } else if (isYouTubeHost(u.hostname)) {
@@ -46,7 +56,7 @@ export default function TextPage() {
 
     const handleConvert = () => {
         const text = linkText.trim() || 'リンク';
-        const link = getMinimalYouTubeLink(inputUrl.trim(), timeOption);
+        const link = getYouTubeLink(inputUrl, timeOption);
         if (!link) {
             setOutputMarkdown('無効なURL / Invalid URL');
         } else {
@@ -65,8 +75,8 @@ export default function TextPage() {
     return (
         <div className="glass-card">
             <h1>YouTube Markdown Link</h1>
-            <p>入力文字と YouTube URL から Markdown 形式で短縮リンクを生成します<br />
-                Generate short Markdown link from text & YouTube URL</p>
+            <p>入力文字と YouTube URL から Markdown 形式のリンクを生成します<br />
+                Generate a Markdown link from text and a YouTube URL.</p>
 
             <div className="input-group">
                 <input
