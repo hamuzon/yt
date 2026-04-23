@@ -67,9 +67,10 @@ const redirectScript = `
   const v = url.searchParams.get('v') || '';
   const typeParam = url.searchParams.get('type') || '';
   const t = url.searchParams.get('t') || '';
+  const fallbackPath = url.pathname.startsWith('/yt/') ? '/yt/' : '/';
 
   if (!v) {
-    window.location.replace('/');
+    window.location.replace(fallbackPath);
     return;
   }
 
