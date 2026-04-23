@@ -91,7 +91,7 @@ export default function TextPage() {
                     type="text"
                     value={inputUrl}
                     onChange={(e) => setInputUrl(e.target.value)}
-                    placeholder="YouTube URL / 動画ID / img.youtube.com URL"
+                    placeholder="YouTube URLを入力 / Enter YouTube URL"
                 />
             </div>
 
