@@ -67,7 +67,7 @@ const redirectScript = `
   const v = url.searchParams.get('v') || '';
   const typeParam = url.searchParams.get('type') || '';
   const t = url.searchParams.get('t') || '';
-  const fallbackPath = url.pathname.startsWith('/yt/') ? '/yt/' : '/';
+  const fallbackPath = url.hostname === 'hamuzon.github.io' ? '/yt/' : '/';
 
   if (!v) {
     window.location.replace(fallbackPath);
