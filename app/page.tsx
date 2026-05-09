@@ -26,7 +26,7 @@ function buildGoUrl(origin: string, hostname: string, v: string, typeParam: stri
 export default function Home() {
     const [videoInput, setVideoInput] = useState('');
     const [t, setT] = useState('');
-    const [output, setOutput] = useState<{ html: string; link: string } | null>(null);
+    const [outputLink, setOutputLink] = useState<string | null>(null);
     const [error, setError] = useState('');
     const [copyBtnText, setCopyBtnText] = useState('📋 コピー');
 
@@ -46,7 +46,7 @@ export default function Home() {
         const input = videoInput.trim();
         const time = t.trim();
         setError('');
-        setOutput(null);
+        setOutputLink(null);
         setCopyBtnText('📋 コピー');
 
         if (!input) {
@@ -95,15 +95,12 @@ export default function Home() {
         const finalT = time || paramT;
         const link = buildGoUrl(window.location.origin, window.location.hostname, v, type, finalT);
 
-        setOutput({
-            html: `<a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a>`,
-            link: link
-        });
+        setOutputLink(link);
     };
 
     const handleCopy = () => {
-        if (output) {
-            navigator.clipboard.writeText(output.link).then(() => {
+        if (outputLink) {
+            navigator.clipboard.writeText(outputLink).then(() => {
                 setCopyBtnText('✅ コピーしました');
                 setTimeout(() => setCopyBtnText('📋 コピー'), 2000);
             }).catch(() => {
@@ -135,15 +132,17 @@ export default function Home() {
 
             <div className="flex flex-col gap-3">
                 <button className="btn btn-primary" onClick={handleGenerate}>リンク生成</button>
-                {output && (
+                {outputLink && (
                     <button className="btn btn-secondary" onClick={handleCopy}>{copyBtnText}</button>
                 )}
             </div>
 
             {error && <div className="error-msg">{error}</div>}
-            {output && (
+            {outputLink && (
                 <div className="mt-4 output-area">
-                    <div dangerouslySetInnerHTML={{ __html: output.html }} />
+                    <a href={outputLink} target="_blank" rel="noopener noreferrer" className="break-all">
+                        {outputLink}
+                    </a>
                 </div>
             )}
         </div>

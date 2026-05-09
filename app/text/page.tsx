@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { isMusicYouTubeHost, isYouTubeHost } from '../lib/youtube';
 
 export default function TextPage() {
@@ -82,7 +82,7 @@ export default function TextPage() {
                 <input
                     type="text"
                     value={linkText}
-                    onChange={(e) => setLinkText(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setLinkText(e.target.value)}
                     placeholder="リンク文字列を入力 / Enter link text"
                 />
             </div>
@@ -90,7 +90,7 @@ export default function TextPage() {
                 <input
                     type="text"
                     value={inputUrl}
-                    onChange={(e) => setInputUrl(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setInputUrl(e.target.value)}
                     placeholder="YouTube URLを入力 / Enter YouTube URL"
                 />
             </div>
@@ -101,7 +101,7 @@ export default function TextPage() {
                     id="timeOption"
                     className="auto-width"
                     checked={timeOption}
-                    onChange={(e) => setTimeOption(e.target.checked)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setTimeOption(e.target.checked)}
                 />
                 <label htmlFor="timeOption" className="mb-0">時間パラメータ保持 / Keep time parameter</label>
             </div>

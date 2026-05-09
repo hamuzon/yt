@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import Image from 'next/image';
 import { isYouTubeHost } from '../lib/youtube';
 
@@ -81,13 +81,13 @@ export default function ThumbnailPage() {
                 <input
                     type="text"
                     value={inputUrl}
-                    onChange={(e) => setInputUrl(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setInputUrl(e.target.value)}
                     placeholder="YouTube URL / ID / サムネURL"
                 />
             </div>
 
             <div className="input-group">
-                <select value={size} onChange={(e) => setSize(e.target.value)} aria-label="サムネイルサイズ">
+                <select value={size} onChange={(e: ChangeEvent<HTMLSelectElement>) => setSize(e.target.value)} aria-label="サムネイルサイズ">
                     <option value="maxresdefault">maxresdefault（最高画質）</option>
                     <option value="sddefault">sddefault</option>
                     <option value="hqdefault">hqdefault（推奨）</option>
