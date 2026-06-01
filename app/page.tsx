@@ -133,40 +133,57 @@ export default function Home() {
     };
 
     return (
-        <div className="glass-card">
-            <h1>🎬 YouTube Link</h1>
-            <div className="input-group">
-                <input
-                    type="text"
-                    value={videoInput}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setVideoInput(e.target.value)}
-                    placeholder="動画IDまたはURLを入力"
-                />
-            </div>
-            <div className="input-group">
-                <input
-                    type="text"
-                    value={t}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setT(e.target.value)}
-                    placeholder="再生開始時間 t=xx（任意）"
-                />
-            </div>
+        <>
+            <script dangerouslySetInnerHTML={{ __html: `
+(() => {
+  const v = new URLSearchParams(window.location.search).get('v');
+  if (!v) return;
+  const type = new URLSearchParams(window.location.search).get('type') || '';
+  const t = new URLSearchParams(window.location.search).get('t') || '';
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+  let url;
+  if (type === 'm') url = 'https://music.youtube.com/watch?v=' + v;
+  else if (type === 's') url = (isMobile ? 'https://m.youtube.com/shorts/' : 'https://www.youtube.com/shorts/') + v;
+  else url = 'https://youtu.be/' + v;
+  if (t) url += (url.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(t);
+  window.location.replace(url);
+})();
+` }} />
+            <div className="glass-card">
+                <h1>🎬 YouTube Link</h1>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        value={videoInput}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setVideoInput(e.target.value)}
+                        placeholder="動画IDまたはURLを入力"
+                    />
+                </div>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        value={t}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setT(e.target.value)}
+                        placeholder="再生開始時間 t=xx（任意）"
+                    />
+                </div>
 
-            <div className="flex flex-col gap-3">
-                <button className="btn btn-primary" onClick={handleGenerate}>リンク生成</button>
+                <div className="flex flex-col gap-3">
+                    <button className="btn btn-primary" onClick={handleGenerate}>リンク生成</button>
+                    {outputLink && (
+                        <button className="btn btn-secondary" onClick={handleCopy}>{copyBtnText}</button>
+                    )}
+                </div>
+
+                {error && <div className="error-msg">{error}</div>}
                 {outputLink && (
-                    <button className="btn btn-secondary" onClick={handleCopy}>{copyBtnText}</button>
+                    <div className="mt-4 output-area">
+                        <a href={outputLink} target="_blank" rel="noopener noreferrer" className="break-all">
+                            {outputLink}
+                        </a>
+                    </div>
                 )}
             </div>
-
-            {error && <div className="error-msg">{error}</div>}
-            {outputLink && (
-                <div className="mt-4 output-area">
-                    <a href={outputLink} target="_blank" rel="noopener noreferrer" className="break-all">
-                        {outputLink}
-                    </a>
-                </div>
-            )}
-        </div>
+        </>
     );
 }
