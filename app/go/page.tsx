@@ -65,38 +65,14 @@ const redirectScript = `
 (() => {
   const url = new URL(window.location.href);
   const v = url.searchParams.get('v') || '';
-  const typeParam = url.searchParams.get('type') || '';
-  const t = url.searchParams.get('t') || '';
-  const fallbackPath = url.hostname === 'hamuzon.github.io' ? '/yt/' : '/';
+  const basePath = url.hostname === 'hamuzon.github.io' ? '/yt/' : '/';
 
   if (!v) {
-    window.location.replace(fallbackPath);
+    window.location.replace(basePath);
     return;
   }
 
-  const ua = navigator.userAgent || '';
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
-
-  let redirectUrl;
-  switch (typeParam) {
-    case 'm':
-      redirectUrl = \`https://music.youtube.com/watch?v=\${v}\`;
-      break;
-    case 's':
-      redirectUrl = isMobile
-        ? \`https://m.youtube.com/shorts/\${v}\`
-        : \`https://www.youtube.com/shorts/\${v}\`;
-      break;
-    default:
-      redirectUrl = \`https://youtu.be/\${v}\`;
-  }
-
-  if (t) {
-    const sep = redirectUrl.includes('?') ? '&' : '?';
-    redirectUrl += \`\${sep}t=\${encodeURIComponent(t)}\`;
-  }
-
-  window.location.replace(redirectUrl);
+  window.location.replace(\`\${basePath}?v=\${encodeURIComponent(v)}\`);
 })();
 `;
 
