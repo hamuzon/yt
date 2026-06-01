@@ -35,10 +35,32 @@ export default function Home() {
         const params = new URLSearchParams(window.location.search);
         const vParam = params.get('v');
         if (vParam) {
-            const tParam = params.get('t') ? `&t=${encodeURIComponent(params.get('t') || '')}` : '';
-            const typeParam = params.get('type') ? `&type=${encodeURIComponent(params.get('type') || '')}` : '';
-            const goPath = resolveGoPath(window.location.hostname);
-            window.location.href = `${goPath}?v=${encodeURIComponent(vParam)}${typeParam}${tParam}`;
+            const typeParam = params.get('type') || '';
+            const tParam = params.get('t') || '';
+
+            const ua = navigator.userAgent || '';
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+
+            let redirectUrl: string;
+            switch (typeParam) {
+                case 'm':
+                    redirectUrl = `https://music.youtube.com/watch?v=${vParam}`;
+                    break;
+                case 's':
+                    redirectUrl = isMobile
+                        ? `https://m.youtube.com/shorts/${vParam}`
+                        : `https://www.youtube.com/shorts/${vParam}`;
+                    break;
+                default:
+                    redirectUrl = `https://youtu.be/${vParam}`;
+            }
+
+            if (tParam) {
+                const sep = redirectUrl.includes('?') ? '&' : '?';
+                redirectUrl += `${sep}t=${encodeURIComponent(tParam)}`;
+            }
+
+            window.location.replace(redirectUrl);
         }
     }, []);
 
