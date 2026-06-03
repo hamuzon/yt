@@ -1,14 +1,16 @@
 'use client';
 
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { isYouTubeHost } from '../lib/youtube';
 
-export default function ThumbnailPage() {
+function ThumbnailPageContent() {
     const [inputUrl, setInputUrl] = useState('');
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
     const [previewUrl, setPreviewUrl] = useState('');
+    const searchParams = useSearchParams();
 
     const getVideoId = (input: string) => {
         if (!input) return null;
@@ -113,18 +115,28 @@ export default function ThumbnailPage() {
                 />
             </div>
 
-            <div className="mt-4">
-                <Image
-                    id="preview"
-                    className="preview"
-                    src={previewUrl}
-                    alt="サムネイルプレビュー"
-                    onError={handlePreviewError}
-                    width={360}
-                    height={202}
-                    style={{ display: previewUrl ? 'block' : 'none', height: 'auto' }}
-                />
-            </div>
+            {previewUrl && (
+                <div className="mt-4">
+                    <Image
+                        id="preview"
+                        className="preview"
+                        src={previewUrl}
+                        alt="サムネイルプレビュー"
+                        onError={handlePreviewError}
+                        width={360}
+                        height={202}
+                        style={{ height: 'auto' }}
+                    />
+                </div>
+            )}
         </div>
+    );
+}
+
+export default function ThumbnailPage() {
+    return (
+        <Suspense fallback={<div className="glass-card">読み込み中...</div>}>
+            <ThumbnailPageContent />
+        </Suspense>
     );
 }
