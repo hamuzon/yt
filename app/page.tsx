@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, ChangeEvent } from 'react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
 
 
@@ -183,6 +184,7 @@ export default function Home() {
                         </a>
                     </div>
                 )}
+                <SpeedInsights />
             </div>
         </>
     );
