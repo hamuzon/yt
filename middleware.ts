@@ -3,10 +3,11 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const url = new URL(request.url)
+  const host = request.headers.get('host') || ''
 
-  // hostnameの末尾にドットがある場合は削除してリダイレクト
-  if (url.hostname.endsWith('.')) {
-    url.hostname = url.hostname.slice(0, -1)
+  // Hostヘッダー（ポート番号を除く部分）の末尾にドットがあるか判定
+  if (host.split(':')[0].endsWith('.')) {
+    // urlオブジェクトは既に正規化されているため、そのままリダイレクト先として使用可能
     return NextResponse.redirect(url, 301)
   }
 

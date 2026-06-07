@@ -174,10 +174,9 @@ export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         try {
             const url = new URL(request.url);
+            const host = request.headers.get('host') || '';
 
-            // ドメインの末尾にドットがある場合は削除してリダイレクト
-            if (url.hostname.endsWith('.')) {
-                url.hostname = url.hostname.slice(0, -1);
+            if (host.split(':')[0].endsWith('.')) {
                 return Response.redirect(url.toString(), 301);
             }
 
