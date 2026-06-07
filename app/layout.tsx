@@ -19,6 +19,16 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 {/* eslint-disable-next-line @next/next/no-page-custom-font */}
                 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;600&family=Potta+One&display=swap" rel="stylesheet" />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            if (window.location.hostname.endsWith('.')) {
+                                const newHostname = window.location.hostname.slice(0, -1);
+                                window.location.replace(window.location.href.replace(window.location.hostname, newHostname));
+                            }
+                        `,
+                    }}
+                />
             </head>
             <body>
                 <main>{children}</main>
