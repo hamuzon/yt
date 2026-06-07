@@ -1,5 +1,6 @@
 import './globals.css'
 import Footer from '@/components/Footer'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import React from 'react'
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({
             <body>
                 <main>{children}</main>
                 <Footer />
+                <SpeedInsights />
             </body>
         </html>
     )
