@@ -178,7 +178,6 @@ export default {
             const hostPart = host.split(':')[0];
 
             if (hostPart.endsWith('.')) {
-                // 末尾のドットを明示的に削除したホスト名を設定
                 url.hostname = hostPart.slice(0, -1);
                 return Response.redirect(url.toString(), 301);
             }
