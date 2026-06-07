@@ -174,6 +174,13 @@ export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         try {
             const url = new URL(request.url);
+
+            // ドメインの末尾にドットがある場合は削除してリダイレクト
+            if (url.hostname.endsWith('.')) {
+                url.hostname = url.hostname.slice(0, -1);
+                return Response.redirect(url.toString(), 301);
+            }
+
             const routedPath = localPath(url.pathname);
             const pathVideoId = extractVideoIdFromPath(routedPath);
             const v = url.searchParams.get('v') || pathVideoId;
