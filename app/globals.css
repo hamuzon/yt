@@ -152,6 +152,17 @@ textarea {
     box-shadow: var(--shadow);
 }
 
+.preview-overlay {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.preview:hover ~ .preview-overlay,
+.preview-overlay:hover,
+div:has(> .preview:hover) .preview-overlay {
+    opacity: 1;
+}
+
 .flex {
     display: flex;
 }

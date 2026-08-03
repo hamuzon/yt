@@ -10,6 +10,7 @@ function ThumbnailPageContent() {
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
     const [previewUrl, setPreviewUrl] = useState('');
+    const [copyLabel, setCopyLabel] = useState('クリックでコピー');
     const searchParams = useSearchParams();
 
     const getVideoId = (input: string) => {
@@ -46,6 +47,17 @@ function ThumbnailPageContent() {
     };
 
 
+    useEffect(() => {
+        const value = searchParams.get('v') ?? searchParams.get('url') ?? searchParams.get('id');
+        if (!value) return;
+        setInputUrl(value);
+        const id = getVideoId(value);
+        if (!id) return;
+        const url = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        setOutputUrl(url);
+        setPreviewUrl(url);
+    }, [searchParams]);
+
     const handleGenerate = () => {
         const id = getVideoId(inputUrl);
         if (!id) {
@@ -73,6 +85,14 @@ function ThumbnailPageContent() {
         const fallback = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
         setOutputUrl(fallback);
         setPreviewUrl(fallback);
+    };
+
+    const handleImageCopy = () => {
+        if (!previewUrl) return;
+        navigator.clipboard.writeText(previewUrl).then(() => {
+            setCopyLabel('コピーしました！');
+            setTimeout(() => setCopyLabel('クリックでコピー'), 1500);
+        });
     };
 
     return (
@@ -116,17 +136,30 @@ function ThumbnailPageContent() {
             </div>
 
             {previewUrl && (
-                <div className="mt-4">
+                <div className="mt-4" style={{ position: 'relative', display: 'inline-block', width: '100%', maxWidth: 360, margin: '1rem auto 0' }}>
                     <Image
                         id="preview"
                         className="preview"
                         src={previewUrl}
                         alt="サムネイルプレビュー"
                         onError={handlePreviewError}
+                        onClick={handleImageCopy}
                         width={360}
                         height={202}
-                        style={{ height: 'auto' }}
+                        style={{ height: 'auto', cursor: 'pointer', display: 'block', width: '100%' }}
                     />
+                    <div style={{
+                        position: 'absolute', inset: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: 12,
+                        background: 'rgba(133,76,48,0.55)',
+                        color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+                        opacity: copyLabel === 'コピーしました！' ? 1 : undefined,
+                        pointerEvents: 'none',
+                        className: 'preview-overlay',
+                    } as React.CSSProperties}>
+                        {copyLabel}
+                    </div>
                 </div>
             )}
         </div>
