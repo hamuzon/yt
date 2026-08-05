@@ -1,9 +1,12 @@
 {
   "name": "yt",
   "main": "worker/index.ts",
-  "compatibility_date": "2026-02-21",
+  "compatibility_date": "2026-08-05",
   "assets": {
     "directory": "./out"
+  },
+  "cache": {
+    "enabled": true
   },
   "observability": {
     "enabled": false,
