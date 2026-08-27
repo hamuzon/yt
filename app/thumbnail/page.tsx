@@ -70,20 +70,6 @@ function ThumbnailPageContent() {
         setPreviewUrl(fallback);
     };
 
-    const [imageCopyLabel, setImageCopyLabel] = useState('クリックでコピー');
-
-    const handleImageCopy = async () => {
-        if (!previewUrl) return;
-        try {
-            await navigator.clipboard.writeText(previewUrl);
-            setImageCopyLabel('コピーしました！');
-            setTimeout(() => setImageCopyLabel('クリックでコピー'), 2000);
-        } catch {
-            setImageCopyLabel('コピー失敗');
-            setTimeout(() => setImageCopyLabel('クリックでコピー'), 2000);
-        }
-    };
-
     return (
         <div className="glass-card">
             <h1>YouTube サムネURL取得</h1>
@@ -125,30 +111,24 @@ function ThumbnailPageContent() {
             </div>
 
             {previewUrl && (
-                <div className="mt-4 flex flex-col items-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                        id="preview"
-                        className="preview"
-                        src={previewUrl}
-                        alt="YouTube thumbnail preview"
-                        onError={handlePreviewError}
-                        onClick={handleImageCopy}
-                        style={{ display: 'block', cursor: 'pointer' }}
-                        title="クリックでURLをコピー"
-                    />
-                    <span
-                        onClick={handleImageCopy}
-                        style={{
-                            marginTop: '0.5rem',
-                            fontSize: '0.85rem',
-                            color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                        }}
+                <div className="mt-4 flex justify-center">
+                    <a
+                        href={previewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-block', textDecoration: 'none' }}
+                        title="新しいタブで画像を開く"
                     >
-                        {imageCopyLabel === 'コピーしました！' ? '✅ コピーしました！' : '📋 クリックでコピー'}
-                    </span>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            id="preview"
+                            className="preview"
+                            src={previewUrl}
+                            alt="YouTube thumbnail preview"
+                            onError={handlePreviewError}
+                            style={{ display: 'block', cursor: 'pointer' }}
+                        />
+                    </a>
                 </div>
             )}
         </div>
