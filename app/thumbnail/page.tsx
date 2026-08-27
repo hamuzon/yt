@@ -10,7 +10,7 @@ function ThumbnailPageContent() {
     const [size, setSize] = useState('hqdefault');
     const [outputUrl, setOutputUrl] = useState('');
     const [previewUrl, setPreviewUrl] = useState('');
-    const [copyLabel, setCopyLabel] = useState('クリックでコピー');
+    const [copyBtnText, setCopyBtnText] = useState('URLコピー');
     const searchParams = useSearchParams();
 
     const getVideoId = (input: string) => {
@@ -19,6 +19,11 @@ function ThumbnailPageContent() {
         return parsed?.videoId || null;
     };
 
+    const loadThumbnail = (id: string, selectedSize: string) => {
+        const url = `https://i.ytimg.com/vi/${id}/${selectedSize}.jpg`;
+        setOutputUrl(url);
+        setPreviewUrl(url);
+    };
 
     useEffect(() => {
         const value = searchParams.get('v') ?? searchParams.get('url') ?? searchParams.get('id');
@@ -26,9 +31,7 @@ function ThumbnailPageContent() {
         setInputUrl(value);
         const id = getVideoId(value);
         if (!id) return;
-        const url = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-        setOutputUrl(url);
-        setPreviewUrl(url);
+        loadThumbnail(id, 'hqdefault');
     }, [searchParams]);
 
     const handleGenerate = () => {
@@ -38,16 +41,23 @@ function ThumbnailPageContent() {
             setPreviewUrl('');
             return;
         }
-        const url = `https://i.ytimg.com/vi/${id}/${size}.jpg`;
-        setOutputUrl(url);
-        setPreviewUrl(url);
+        loadThumbnail(id, size);
     };
 
-    const handleCopy = () => {
-        if (outputUrl && outputUrl !== '無効なURLまたはID') {
-            navigator.clipboard.writeText(outputUrl).then(() => {
-                alert('Copied!');
-            });
+    const handleCopy = async () => {
+        if (!outputUrl || outputUrl.startsWith('無効な')) return;
+
+        try {
+            await navigator.clipboard.writeText(outputUrl);
+            setCopyBtnText('コピー完了!');
+            setTimeout(() => {
+                setCopyBtnText('URLコピー');
+            }, 2000);
+        } catch {
+            setCopyBtnText('コピー失敗');
+            setTimeout(() => {
+                setCopyBtnText('URLコピー');
+            }, 2000);
         }
     };
 
@@ -60,12 +70,18 @@ function ThumbnailPageContent() {
         setPreviewUrl(fallback);
     };
 
-    const handleImageCopy = () => {
+    const [imageCopyLabel, setImageCopyLabel] = useState('クリックでコピー');
+
+    const handleImageCopy = async () => {
         if (!previewUrl) return;
-        navigator.clipboard.writeText(previewUrl).then(() => {
-            setCopyLabel('コピーしました！');
-            setTimeout(() => setCopyLabel('クリックでコピー'), 1500);
-        });
+        try {
+            await navigator.clipboard.writeText(previewUrl);
+            setImageCopyLabel('コピーしました！');
+            setTimeout(() => setImageCopyLabel('クリックでコピー'), 2000);
+        } catch {
+            setImageCopyLabel('コピー失敗');
+            setTimeout(() => setImageCopyLabel('クリックでコピー'), 2000);
+        }
     };
 
     return (
@@ -96,7 +112,7 @@ function ThumbnailPageContent() {
 
             <div className="flex flex-col gap-3">
                 <button className="btn btn-primary" onClick={handleGenerate}>生成</button>
-                <button className="btn btn-secondary" onClick={handleCopy}>URLコピー</button>
+                <button className="btn btn-secondary" onClick={handleCopy}>{copyBtnText}</button>
             </div>
 
             <div className="mt-4">
@@ -109,30 +125,30 @@ function ThumbnailPageContent() {
             </div>
 
             {previewUrl && (
-                <div className="mt-4" style={{ position: 'relative', display: 'inline-block', width: '100%', maxWidth: 360, margin: '1rem auto 0' }}>
-                    <Image
+                <div className="mt-4 flex flex-col items-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                         id="preview"
                         className="preview"
                         src={previewUrl}
-                        alt="サムネイルプレビュー"
+                        alt="YouTube thumbnail preview"
                         onError={handlePreviewError}
                         onClick={handleImageCopy}
-                        width={360}
-                        height={202}
-                        style={{ height: 'auto', cursor: 'pointer', display: 'block', width: '100%' }}
+                        style={{ display: 'block', cursor: 'pointer' }}
+                        title="クリックでURLをコピー"
                     />
-                    <div style={{
-                        position: 'absolute', inset: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        borderRadius: 12,
-                        background: 'rgba(133,76,48,0.55)',
-                        color: '#fff', fontWeight: 700, fontSize: '0.95rem',
-                        opacity: copyLabel === 'コピーしました！' ? 1 : undefined,
-                        pointerEvents: 'none',
-                        className: 'preview-overlay',
-                    } as React.CSSProperties}>
-                        {copyLabel}
-                    </div>
+                    <span
+                        onClick={handleImageCopy}
+                        style={{
+                            marginTop: '0.5rem',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                        }}
+                    >
+                        {imageCopyLabel === 'コピーしました！' ? '✅ コピーしました！' : '📋 クリックでコピー'}
+                    </span>
                 </div>
             )}
         </div>
