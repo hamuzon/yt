@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { isMusicYouTubeHost, isYouTubeHost } from './lib/youtube';
+import { isMusicYouTubeHost, isYouTubeHost, parseYouTubeInput } from './lib/youtube';
 
 
 function resolveGoPath(hostname: string): string {
@@ -37,7 +37,7 @@ export default function Home() {
         const vParam = params.get('v');
         if (vParam) {
             const typeParam = params.get('type') || '';
-            const tParam = params.get('t') || '';
+            const tParam = params.get('t') || params.get('time') || params.get('start') || '';
 
             const ua = navigator.userAgent || '';
             const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -45,15 +45,15 @@ export default function Home() {
             let redirectUrl: string;
             switch (typeParam) {
                 case 'm':
-                    redirectUrl = `https://music.youtube.com/watch?v=${vParam}`;
+                    redirectUrl = `https://music.youtube.com/watch?v=${encodeURIComponent(vParam)}`;
                     break;
                 case 's':
                     redirectUrl = isMobile
-                        ? `https://m.youtube.com/shorts/${vParam}`
-                        : `https://www.youtube.com/shorts/${vParam}`;
+                        ? `https://m.youtube.com/shorts/${encodeURIComponent(vParam)}`
+                        : `https://www.youtube.com/shorts/${encodeURIComponent(vParam)}`;
                     break;
                 default:
-                    redirectUrl = `https://youtu.be/${vParam}`;
+                    redirectUrl = `https://youtu.be/${encodeURIComponent(vParam)}`;
             }
 
             if (tParam) {
@@ -77,46 +77,14 @@ export default function Home() {
             return;
         }
 
-        let v: string = input;
-        let type: string = '';
-        let paramT: string = '';
-
-        try {
-            if (input.startsWith('http')) {
-                const urlObj = new URL(input);
-                const host = urlObj.hostname;
-                const isYouTubeDomain = isYouTubeHost(host);
-
-                if (isYouTubeDomain) {
-                    if (urlObj.pathname.startsWith('/watch')) {
-                        const vFromUrl = urlObj.searchParams.get('v');
-                        if (vFromUrl) v = vFromUrl;
-                        if (isMusicYouTubeHost(host)) type = 'm';
-                    }
-                    if (urlObj.pathname.startsWith('/shorts/')) {
-                        v = urlObj.pathname.split('/shorts/')[1].split('/')[0];
-                        type = 's';
-                    }
-                    const tFromUrl = urlObj.searchParams.get('t');
-                    if (tFromUrl) paramT = tFromUrl;
-                } else if (host === 'youtu.be') {
-                    v = urlObj.pathname.replace('/', '');
-                    const tFromUrl = urlObj.searchParams.get('t');
-                    if (tFromUrl) paramT = tFromUrl;
-                }
-            } else if (input.includes('?')) {
-                const [id, queryParams] = input.split('?');
-                v = id;
-                const p = new URLSearchParams(queryParams);
-                const tFromUrl = p.get('t');
-                if (tFromUrl) paramT = tFromUrl;
-            }
-        } catch (e) {
-            console.error('URL parsing error:', e);
+        const parsed = parseYouTubeInput(input);
+        if (!parsed || !parsed.videoId) {
+            setError('❌ 有効なURLまたはIDを入力してください');
+            return;
         }
 
-        const finalT = time || paramT;
-        const link = buildGoUrl(window.location.origin, window.location.hostname, v, type, finalT);
+        const finalT = time || parsed.time;
+        const link = buildGoUrl(window.location.origin, window.location.hostname, parsed.videoId, parsed.type, finalT);
 
         setOutputLink(link);
     };

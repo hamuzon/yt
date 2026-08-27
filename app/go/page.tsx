@@ -64,9 +64,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 const redirectScript = `
 (() => {
   const url = new URL(window.location.href);
-  const v = url.searchParams.get('v') || '';
-  const typeParam = url.searchParams.get('type') || '';
-  const t = url.searchParams.get('t') || '';
+  const v = url.searchParams.get('v') || url.searchParams.get('V') || url.searchParams.get('id') || '';
+  const typeParam = (url.searchParams.get('type') || url.searchParams.get('TYPE') || '').toLowerCase();
+  const t = url.searchParams.get('t') || url.searchParams.get('time') || url.searchParams.get('start') || '';
   const fallbackPath = url.hostname === 'hamuzon.github.io' ? '/yt/' : '/';
 
   if (!v) {
@@ -80,15 +80,15 @@ const redirectScript = `
   let redirectUrl;
   switch (typeParam) {
     case 'm':
-      redirectUrl = \`https://music.youtube.com/watch?v=\${v}\`;
+      redirectUrl = \`https://music.youtube.com/watch?v=\${encodeURIComponent(v)}\`;
       break;
     case 's':
       redirectUrl = isMobile
-        ? \`https://m.youtube.com/shorts/\${v}\`
-        : \`https://www.youtube.com/shorts/\${v}\`;
+        ? \`https://m.youtube.com/shorts/\${encodeURIComponent(v)}\`
+        : \`https://www.youtube.com/shorts/\${encodeURIComponent(v)}\`;
       break;
     default:
-      redirectUrl = \`https://youtu.be/\${v}\`;
+      redirectUrl = \`https://youtu.be/\${encodeURIComponent(v)}\`;
   }
 
   if (t) {

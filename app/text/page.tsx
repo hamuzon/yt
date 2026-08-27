@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, useState } from 'react';
-import { isMusicYouTubeHost, isYouTubeHost } from '../lib/youtube';
+import { parseYouTubeInput } from '../lib/youtube';
 
 export default function TextPage() {
     const [linkText, setLinkText] = useState('');
@@ -11,42 +11,15 @@ export default function TextPage() {
 
     const getYouTubeLink = (input: string, keepTime: boolean) => {
         try {
-            const trimmedInput = input.trim();
-            const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/;
+            const parsed = parseYouTubeInput(input);
+            if (!parsed || !parsed.videoId) return null;
 
-            if (videoIdPattern.test(trimmedInput)) {
-                return `https://youtu.be/${trimmedInput}`;
-            }
-
-            const u = new URL(trimmedInput);
-            let videoId: string | null = null;
             let timeParam = '';
-
-            if (keepTime) {
-                const t = u.searchParams.get('t');
-                const start = u.searchParams.get('start');
-                if (t) timeParam = '?t=' + t;
-                else if (start) timeParam = '?t=' + start;
+            if (keepTime && parsed.time) {
+                timeParam = `?t=${encodeURIComponent(parsed.time)}`;
             }
 
-            if (u.hostname === 'youtu.be') {
-                videoId = u.pathname.slice(1);
-            } else if ((u.hostname === 'img.youtube.com' || u.hostname === 'i.ytimg.com') && u.pathname.startsWith('/vi/')) {
-                const parts = u.pathname.split('/');
-                videoId = parts[2] || null;
-            } else if (isMusicYouTubeHost(u.hostname) && u.pathname === '/watch') {
-                videoId = u.searchParams.get('v');
-            } else if (isYouTubeHost(u.hostname)) {
-                if (u.pathname === '/watch') {
-                    videoId = u.searchParams.get('v');
-                } else if (u.pathname.startsWith('/shorts/')) {
-                    videoId = u.pathname.split('/')[2];
-                }
-            }
-
-            if (!videoId) return null;
-
-            return `https://youtu.be/${videoId}${timeParam}`;
+            return `https://youtu.be/${parsed.videoId}${timeParam}`;
         } catch (e) {
             console.error('Markdown link processing failed:', e);
             return null;

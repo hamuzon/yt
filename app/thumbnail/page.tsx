@@ -3,7 +3,7 @@
 import { ChangeEvent, useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { isYouTubeHost } from '../lib/youtube';
+import { parseYouTubeInput } from '../lib/youtube';
 
 function ThumbnailPageContent() {
     const [inputUrl, setInputUrl] = useState('');
@@ -15,35 +15,8 @@ function ThumbnailPageContent() {
 
     const getVideoId = (input: string) => {
         if (!input) return null;
-        const trimmedInput = input.trim();
-        if (/^[a-zA-Z0-9_-]{11}$/.test(trimmedInput)) {
-            return trimmedInput;
-        }
-        const thumb = trimmedInput.match(/(?:i\.ytimg\.com|img\.youtube\.com)\/vi\/([a-zA-Z0-9_-]{11})/);
-        if (thumb) return thumb[1];
-        try {
-            const u = new URL(trimmedInput);
-            if (u.hostname === 'youtu.be') {
-                const id = u.pathname.split('/')[1];
-                if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
-            }
-            if (isYouTubeHost(u.hostname)) {
-                const v = u.searchParams.get('v');
-                if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
-
-                const shorts = u.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-                if (shorts) return shorts[1];
-
-                const embed = u.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
-                if (embed) return embed[1];
-
-                const live = u.pathname.match(/\/live\/([a-zA-Z0-9_-]{11})/);
-                if (live) return live[1];
-            }
-        } catch (e) {
-            console.error('Thumbnail extraction error:', e);
-        }
-        return null;
+        const parsed = parseYouTubeInput(input);
+        return parsed?.videoId || null;
     };
 
 
