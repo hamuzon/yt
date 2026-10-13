@@ -101,6 +101,10 @@ function extractVideoIdFromPath(path: string) {
 
 async function notFoundResponse(request: Request, env: Env) {
     // Next.js static export outputs /_not-found/index.html
+    if (!env?.ASSETS) {
+        return new Response('Not Found', { status: 404 });
+    }
+
     const candidates = [
         '/_not-found/index.html',
         '/404/index.html',
