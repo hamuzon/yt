@@ -7,9 +7,3 @@ YouTube関連のツール集です。
 - **メイン**: <https://hamuzon.github.io/yt/>
 - **サムネイル取得**: <https://hamuzon.github.io/yt/thumbnail/>
 - **テキスト抽出**: <https://hamuzon.github.io/yt/text/>
-## 開発
-
-```bash
-npm install
-npm run dev
-```
