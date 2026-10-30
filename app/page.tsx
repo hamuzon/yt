@@ -120,8 +120,6 @@ export default function Home() {
 ` }} />
             <div className="glass-card">
                 <h1>🎬 YouTube Link</h1>
-                <p className="description">
-                    YouTubeの動画IDまたはURLから、共有用リンクを生成できます。<br />
                 <div className="input-group">
                     <input
                         type="text"
