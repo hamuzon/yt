@@ -10,6 +10,9 @@ node_modules/
 /.next/
 /out/
 
+# cloudflare wrangler
+/.wrangler/
+
 # production
 /build
 

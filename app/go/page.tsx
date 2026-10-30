@@ -20,6 +20,16 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return { openGraph: null, twitter: null };
   }
 
+  const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : '';
+
+  const embedUrl = siteUrl
+    ? `${siteUrl}/go/embed/?v=${encodeURIComponent(v)}`
+    : undefined;
+
   try {
     const res = await fetch(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(v)}&format=json`
@@ -29,7 +39,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
     const title = data.title || 'YouTube Video';
     const description = data.author_name ? `by ${data.author_name}` : '';
-    const thumbnail = data.thumbnail_url || `https://i.ytimg.com/vi/${v}/maxresdefault.jpg`;
+    const thumbnail = data.thumbnail_url || `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
 
     return {
       title,
@@ -39,6 +49,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
         description,
         images: [thumbnail],
         type: 'video.other',
+        ...(embedUrl
+          ? { videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }] }
+          : {}),
       },
       twitter: {
         card: 'summary_large_image',
@@ -50,12 +63,15 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   } catch {
     return {
       openGraph: {
-        images: [`https://i.ytimg.com/vi/${v}/maxresdefault.jpg`],
+        images: [`https://i.ytimg.com/vi/${v}/hqdefault.jpg`],
         type: 'video.other',
+        ...(embedUrl
+          ? { videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }] }
+          : {}),
       },
       twitter: {
         card: 'summary_large_image',
-        images: [`https://i.ytimg.com/vi/${v}/maxresdefault.jpg`],
+        images: [`https://i.ytimg.com/vi/${v}/hqdefault.jpg`],
       },
     };
   }

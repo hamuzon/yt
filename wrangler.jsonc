@@ -5,7 +5,14 @@
   "compatibility_date": "2026-10-16",
   "previews": {},
   "assets": {
-    "directory": "./out"
+    "directory": "./out",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/go",
+      "/go/*",
+      "/yt/go",
+      "/yt/go/*"
+    ]
   },
   "cache": {
     "enabled": true

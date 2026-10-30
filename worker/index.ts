@@ -2,52 +2,184 @@ interface Env {
     ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
+const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+
+// Link-preview crawlers (Discord, X/Twitter, Slack, etc.).
+// Normal browsers must not match this, otherwise they would receive the OGP
+// page instead of the 302 redirect to YouTube.
+const BOT_RE =
+    /Twitterbot|Discordbot|Slackbot|Slack-ImgProxy|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Googlebot|bingbot|BingPreview|Applebot|SkypeUriPreview|Pinterest|redditbot|Mastodon|Misskey|Bluesky|Iframely|Embedly|curl|wget/i;
+
 function isBot(ua: string): boolean {
-    return /Twitterbot|Discordbot|Slackbot|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Googlebot|bingbot|Applebot|curl|wget/i.test(ua);
+    return BOT_RE.test(ua);
 }
 
-async function buildOgHtml(v: string, requestUrl: string): Promise<string> {
-    const pageUrl = new URL('/go', requestUrl);
-    pageUrl.searchParams.set('v', v);
+function getBasePath(url: URL): string {
+    if (url.hostname === 'hamuzon.github.io') {
+        return '/yt';
+    }
+    if (url.pathname === '/yt' || url.pathname.startsWith('/yt/')) {
+        return '/yt';
+    }
+    return '';
+}
 
-    let title = 'YouTube Video';
-    let description = '';
-    let thumbnail = `https://i.ytimg.com/vi/${v}/maxresdefault.jpg`;
+function buildShareUrl(requestUrl: string, v: string, typeParam: string, t: string): string {
+    const url = new URL(requestUrl);
+    url.pathname = `${getBasePath(url)}/go/`;
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('v', v);
+    if (typeParam) {
+        url.searchParams.set('type', typeParam);
+    }
+    if (t) {
+        url.searchParams.set('t', t);
+    }
+    return url.toString();
+}
 
-    try {
-        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(v)}&format=json`;
-        const res = await fetch(oembedUrl);
-        if (res.ok) {
-            const data = await res.json() as { title?: string; author_name?: string; thumbnail_url?: string };
-            title = data.title || title;
-            description = data.author_name ? `by ${data.author_name}` : '';
-            thumbnail = data.thumbnail_url || thumbnail;
-        }
-    } catch {
-        // fallback to defaults
+function toSeconds(value: string): string {
+    if (!value) return '';
+    if (/^\d+$/.test(value)) return value;
+
+    const match = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+    if (!match || (!match[1] && !match[2] && !match[3])) {
+        return '';
     }
 
-    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const hours = Number(match[1] || 0);
+    const minutes = Number(match[2] || 0);
+    const seconds = Number(match[3] || 0);
+    return String(hours * 3600 + minutes * 60 + seconds);
+}
+
+function buildEmbedUrl(requestUrl: string, v: string, t: string): string {
+    const url = new URL(requestUrl);
+    url.pathname = `${getBasePath(url)}/go/embed/`;
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('v', v);
+
+    const start = toSeconds(t);
+    if (start) {
+        url.searchParams.set('t', start);
+    }
+
+    return url.toString();
+}
+
+function buildEmbedHtml(v: string, t: string): string {
+    const query = new URLSearchParams({
+        rel: '0',
+        playsinline: '1',
+        modestbranding: '1',
+    });
+
+    const start = toSeconds(t);
+    if (start) {
+        query.set('start', start);
+    }
+
+    const src = `https://www.youtube.com/embed/${encodeURIComponent(v)}?${query.toString()}`;
 
     return `<!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>${esc(title)}</title>
-<meta property="og:title" content="${esc(title)}">
-<meta property="og:description" content="${esc(description)}">
-<meta property="og:image" content="${esc(thumbnail)}">
-<meta property="og:url" content="${esc(pageUrl.toString())}">
-<meta property="og:type" content="video.other">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${esc(title)}">
-<meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${esc(thumbnail)}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YouTube Player</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+iframe{display:block;width:100%;height:100%;border:0}
+</style>
 </head>
-<body></body>
+<body>
+<iframe src="${escapeHtml(src)}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</body>
 </html>`;
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+async function fetchOEmbed(v: string): Promise<{
+    title?: string;
+    author_name?: string;
+    thumbnail_url?: string;
+} | null> {
+    try {
+        const res = await fetch(
+            `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(v)}&format=json`,
+            {
+                headers: { accept: 'application/json' },
+                signal: AbortSignal.timeout(3000),
+            }
+        );
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
+async function buildOgHtml(v: string, requestUrl: string, typeParam: string, t: string): Promise<string> {
+    const shareUrl = buildShareUrl(requestUrl, v, typeParam, t);
+    const embedUrl = buildEmbedUrl(requestUrl, v, t);
+
+    let title = 'YouTube Video';
+    let description = 'YouTube で再生';
+    // hqdefault always exists, while maxresdefault is missing for some videos.
+    let thumbnail = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
+
+    const oembed = await fetchOEmbed(v);
+    if (oembed) {
+        title = oembed.title || title;
+        description = oembed.author_name ? `by ${oembed.author_name}` : description;
+        thumbnail = oembed.thumbnail_url || thumbnail;
+    }
+
+    const e = escapeHtml;
+
+    return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${e(title)}</title>
+<meta name="description" content="${e(description)}">
+<link rel="canonical" href="${e(shareUrl)}">
+<meta name="theme-color" content="#000000">
+<meta property="og:site_name" content="YouTube Link">
+<meta property="og:title" content="${e(title)}">
+<meta property="og:description" content="${e(description)}">
+<meta property="og:url" content="${e(shareUrl)}">
+<meta property="og:type" content="video.other">
+<meta property="og:image" content="${e(thumbnail)}">
+<meta property="og:image:alt" content="${e(title)}">
+<meta property="og:video" content="${e(embedUrl)}">
+<meta property="og:video:url" content="${e(embedUrl)}">
+<meta property="og:video:secure_url" content="${e(embedUrl)}">
+<meta property="og:video:type" content="text/html">
+<meta property="og:video:width" content="1280">
+<meta property="og:video:height" content="720">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${e(title)}">
+<meta name="twitter:description" content="${e(description)}">
+<meta name="twitter:image" content="${e(thumbnail)}">
+<meta name="twitter:image:alt" content="${e(title)}">
+</head>
+<body>
+<p><a href="${e(shareUrl)}">${e(title)}</a></p>
+</body>
+</html>`;
+}
 
 function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -76,7 +208,43 @@ function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
 }
 
 function redirectResponse(url: string) {
-    return Response.redirect(url, 302);
+    return new Response(null, {
+        status: 302,
+        headers: {
+            Location: url,
+            'Cache-Control': 'no-store',
+            Vary: 'User-Agent',
+        },
+    });
+}
+
+function htmlResponse(html: string) {
+    return new Response(html, {
+        status: 200,
+        headers: {
+            'Content-Type': 'text/html;charset=UTF-8',
+            'Cache-Control': 'no-store',
+            Vary: 'User-Agent',
+        },
+    });
+}
+
+function handleEmbedRequest(request: Request): Response {
+    const url = new URL(request.url);
+    const v = url.searchParams.get('v') || url.searchParams.get('V') || url.searchParams.get('id') || '';
+    const t = url.searchParams.get('t') || url.searchParams.get('time') || url.searchParams.get('start') || '';
+
+    if (!VIDEO_ID_RE.test(v)) {
+        return new Response('Not Found', { status: 404 });
+    }
+
+    return new Response(buildEmbedHtml(v, t), {
+        status: 200,
+        headers: {
+            'Content-Type': 'text/html;charset=UTF-8',
+            'Cache-Control': 'public, max-age=3600',
+        },
+    });
 }
 
 function normalizePath(pathname: string) {
@@ -140,38 +308,13 @@ async function handleGoRequest(request: Request, env: Env): Promise<Response> {
 
     const ua = request.headers.get('user-agent') || '';
 
-    // Bots get an OGP HTML page so Twitter/Discord/etc. can render cards
+    // Bots get an OGP page so Discord/X/Slack/etc. can render a video embed.
     if (isBot(ua)) {
-        const html = await buildOgHtml(v, request.url);
-        return new Response(html, {
-            status: 200,
-            headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-        });
+        return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
     }
 
     // Everyone else gets redirected directly
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
-
-    let redirectUrl: string;
-    switch (typeParam) {
-        case 'm':
-            redirectUrl = `https://music.youtube.com/watch?v=${encodeURIComponent(v)}`;
-            break;
-        case 's':
-            redirectUrl = isMobile
-                ? `https://m.youtube.com/shorts/${encodeURIComponent(v)}`
-                : `https://www.youtube.com/shorts/${encodeURIComponent(v)}`;
-            break;
-        default:
-            redirectUrl = `https://youtu.be/${encodeURIComponent(v)}`;
-    }
-
-    if (t) {
-        const sep = redirectUrl.includes('?') ? '&' : '?';
-        redirectUrl += `${sep}t=${encodeURIComponent(t)}`;
-    }
-
-    return Response.redirect(redirectUrl, 302);
+    return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
 }
 
 export default {
@@ -194,6 +337,9 @@ export default {
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
                 const ua = request.headers.get('user-agent') || '';
+                if (isBot(ua)) {
+                    return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
+                }
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
@@ -201,7 +347,12 @@ export default {
                 return handleGoRequest(request, env);
             }
 
+            if (routedPath === '/go/embed') {
+                return handleEmbedRequest(request);
+            }
 
+            // Everything else (the Next.js pages and assets) is served from
+            // the static export.
             const assetResponse = await env.ASSETS.fetch(request);
             if (assetResponse.status === 404) {
                 return notFoundResponse(request, env);
