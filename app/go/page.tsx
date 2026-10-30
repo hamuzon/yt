@@ -1,12 +1,3 @@
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-    // Link previews (Discord/X/Slack etc.) must show no embed for ?v= links.
-    title: 'YouTube',
-    description: '',
-    robots: { index: false, follow: false },
-};
-
 const redirectScript = `
 (() => {
   const url = new URL(window.location.href);
