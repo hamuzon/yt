@@ -2,8 +2,6 @@ interface Env {
     ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
-const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
-
 // Link-preview crawlers (Discord, X/Twitter, Slack, etc.).
 // Normal browsers must not match this, otherwise they would receive the OGP
 // page instead of the 302 redirect to YouTube.
@@ -54,26 +52,10 @@ function toSeconds(value: string): string {
     return String(hours * 3600 + minutes * 60 + seconds);
 }
 
-function buildEmbedUrl(requestUrl: string, v: string, t: string): string {
-    const url = new URL(requestUrl);
-    url.pathname = `${getBasePath(url)}/go/embed/`;
-    url.search = '';
-    url.hash = '';
-    url.searchParams.set('v', v);
-
-    const start = toSeconds(t);
-    if (start) {
-        url.searchParams.set('t', start);
-    }
-
-    return url.toString();
-}
-
-function buildEmbedHtml(v: string, t: string): string {
+function buildYouTubeEmbedUrl(v: string, t: string): string {
     const query = new URLSearchParams({
         rel: '0',
         playsinline: '1',
-        modestbranding: '1',
     });
 
     const start = toSeconds(t);
@@ -81,23 +63,7 @@ function buildEmbedHtml(v: string, t: string): string {
         query.set('start', start);
     }
 
-    const src = `https://www.youtube.com/embed/${encodeURIComponent(v)}?${query.toString()}`;
-
-    return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YouTube Player</title>
-<style>
-html,body{margin:0;height:100%;background:#000;overflow:hidden}
-iframe{display:block;width:100%;height:100%;border:0}
-</style>
-</head>
-<body>
-<iframe src="${escapeHtml(src)}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-</body>
-</html>`;
+    return `https://www.youtube.com/embed/${encodeURIComponent(v)}?${query.toString()}`;
 }
 
 function escapeHtml(value: string): string {
@@ -131,17 +97,19 @@ async function fetchOEmbed(v: string): Promise<{
 
 async function buildOgHtml(v: string, requestUrl: string, typeParam: string, t: string): Promise<string> {
     const shareUrl = buildShareUrl(requestUrl, v, typeParam, t);
-    const embedUrl = buildEmbedUrl(requestUrl, v, t);
+    const embedUrl = buildYouTubeEmbedUrl(v, t);
 
     let title = 'YouTube Video';
-    let description = 'YouTube で再生';
+    let description = 'YouTube の動画を再生します。';
     // hqdefault always exists, while maxresdefault is missing for some videos.
     let thumbnail = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
 
     const oembed = await fetchOEmbed(v);
     if (oembed) {
         title = oembed.title || title;
-        description = oembed.author_name ? `by ${oembed.author_name}` : description;
+        description = oembed.author_name
+            ? `${oembed.author_name} の YouTube 動画`
+            : description;
         thumbnail = oembed.thumbnail_url || thumbnail;
     }
 
@@ -176,7 +144,11 @@ async function buildOgHtml(v: string, requestUrl: string, typeParam: string, t: 
 <meta name="twitter:image:alt" content="${e(title)}">
 </head>
 <body>
+<main>
 <p><a href="${e(shareUrl)}">${e(title)}</a></p>
+<p>${e(description)}</p>
+<p><a href="${e(shareUrl)}">YouTube で開く</a></p>
+</main>
 </body>
 </html>`;
 }
@@ -225,24 +197,6 @@ function htmlResponse(html: string) {
             'Content-Type': 'text/html;charset=UTF-8',
             'Cache-Control': 'no-store',
             Vary: 'User-Agent',
-        },
-    });
-}
-
-function handleEmbedRequest(request: Request): Response {
-    const url = new URL(request.url);
-    const v = url.searchParams.get('v') || url.searchParams.get('V') || url.searchParams.get('id') || '';
-    const t = url.searchParams.get('t') || url.searchParams.get('time') || url.searchParams.get('start') || '';
-
-    if (!VIDEO_ID_RE.test(v)) {
-        return new Response('Not Found', { status: 404 });
-    }
-
-    return new Response(buildEmbedHtml(v, t), {
-        status: 200,
-        headers: {
-            'Content-Type': 'text/html;charset=UTF-8',
-            'Cache-Control': 'public, max-age=3600',
         },
     });
 }
@@ -345,10 +299,6 @@ export default {
 
             if (routedPath === '/go') {
                 return handleGoRequest(request, env);
-            }
-
-            if (routedPath === '/go/embed') {
-                return handleEmbedRequest(request);
             }
 
             // Everything else (the Next.js pages and assets) is served from

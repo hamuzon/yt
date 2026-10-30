@@ -20,15 +20,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return { openGraph: null, twitter: null };
   }
 
-  const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : '';
-
-  const embedUrl = siteUrl
-    ? `${siteUrl}/go/embed/?v=${encodeURIComponent(v)}`
-    : undefined;
+  // Use YouTube's own embed URL so no separate player page is needed.
+  const embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(v)}`;
 
   try {
     const res = await fetch(
@@ -49,9 +42,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
         description,
         images: [thumbnail],
         type: 'video.other',
-        ...(embedUrl
-          ? { videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }] }
-          : {}),
+        videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }],
       },
       twitter: {
         card: 'summary_large_image',
@@ -65,9 +56,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       openGraph: {
         images: [`https://i.ytimg.com/vi/${v}/hqdefault.jpg`],
         type: 'video.other',
-        ...(embedUrl
-          ? { videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }] }
-          : {}),
+        videos: [{ url: embedUrl, type: 'text/html', width: 1280, height: 720 }],
       },
       twitter: {
         card: 'summary_large_image',
