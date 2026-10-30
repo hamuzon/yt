@@ -1,3 +1,9 @@
+// ?v= リンクの埋め込みにルートのサービス名を継承させないための上書き。
+export const metadata = {
+    title: 'YouTube',
+    description: '',
+};
+
 const redirectScript = `
 (() => {
   const url = new URL(window.location.href);

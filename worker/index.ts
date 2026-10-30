@@ -308,12 +308,8 @@ async function handleGoRequest(request: Request, env: Env): Promise<Response> {
 
     const ua = request.headers.get('user-agent') || '';
 
-    // Bots get an OGP page so Discord/X/Slack/etc. can render a video embed.
-    if (isBot(ua)) {
-        return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
-    }
-
-    // Everyone else gets redirected directly
+    // 2m.f5.si 方式: ボットも含めて全員リダイレクトする。
+    // Discord などはリダイレクト先の YouTube を unfurl して動画埋め込みを生成する。
     return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
 }
 
@@ -337,9 +333,7 @@ export default {
                 const typeParam = url.searchParams.get('type') || '';
                 const t = url.searchParams.get('t') || '';
                 const ua = request.headers.get('user-agent') || '';
-                if (isBot(ua)) {
-                    return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
-                }
+                // ボットもリダイレクト(Discord が YouTube を unfurl して動画埋め込みを生成)
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }
 
