@@ -1,5 +1,5 @@
 export const metadata = {
-    title: ' YouTube Link Service',
+    title: 'YouTube Link Service',
     description: 'YouTube Link Generator',
 };
 
