@@ -3,154 +3,13 @@ interface Env {
 }
 
 // Link-preview crawlers (Discord, X/Twitter, Slack, etc.).
-// Normal browsers must not match this, otherwise they would receive the OGP
-// page instead of the 302 redirect to YouTube.
+// Normal browsers must not match this, otherwise they would receive the
+// no-embed response instead of the 302 redirect to YouTube.
 const BOT_RE =
     /Twitterbot|Discordbot|Slackbot|Slack-ImgProxy|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Googlebot|bingbot|BingPreview|Applebot|SkypeUriPreview|Pinterest|redditbot|Mastodon|Misskey|Bluesky|Iframely|Embedly|curl|wget/i;
 
 function isBot(ua: string): boolean {
     return BOT_RE.test(ua);
-}
-
-function getBasePath(url: URL): string {
-    if (url.hostname === 'hamuzon.github.io') {
-        return '/yt';
-    }
-    if (url.pathname === '/yt' || url.pathname.startsWith('/yt/')) {
-        return '/yt';
-    }
-    return '';
-}
-
-function buildShareUrl(requestUrl: string, v: string, typeParam: string, t: string): string {
-    const url = new URL(requestUrl);
-    url.pathname = `${getBasePath(url)}/go/`;
-    url.search = '';
-    url.hash = '';
-    url.searchParams.set('v', v);
-    if (typeParam) {
-        url.searchParams.set('type', typeParam);
-    }
-    if (t) {
-        url.searchParams.set('t', t);
-    }
-    return url.toString();
-}
-
-function toSeconds(value: string): string {
-    if (!value) return '';
-    if (/^\d+$/.test(value)) return value;
-
-    const match = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
-    if (!match || (!match[1] && !match[2] && !match[3])) {
-        return '';
-    }
-
-    const hours = Number(match[1] || 0);
-    const minutes = Number(match[2] || 0);
-    const seconds = Number(match[3] || 0);
-    return String(hours * 3600 + minutes * 60 + seconds);
-}
-
-function buildYouTubeEmbedUrl(v: string, t: string): string {
-    const query = new URLSearchParams({
-        rel: '0',
-        playsinline: '1',
-    });
-
-    const start = toSeconds(t);
-    if (start) {
-        query.set('start', start);
-    }
-
-    return `https://www.youtube.com/embed/${encodeURIComponent(v)}?${query.toString()}`;
-}
-
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-async function fetchOEmbed(v: string): Promise<{
-    title?: string;
-    author_name?: string;
-    thumbnail_url?: string;
-} | null> {
-    try {
-        const res = await fetch(
-            `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(v)}&format=json`,
-            {
-                headers: { accept: 'application/json' },
-                signal: AbortSignal.timeout(3000),
-            }
-        );
-        if (!res.ok) return null;
-        return await res.json();
-    } catch {
-        return null;
-    }
-}
-
-async function buildOgHtml(v: string, requestUrl: string, typeParam: string, t: string): Promise<string> {
-    const shareUrl = buildShareUrl(requestUrl, v, typeParam, t);
-    const embedUrl = buildYouTubeEmbedUrl(v, t);
-
-    let title = 'YouTube Video';
-    let description = 'YouTube の動画を再生します。';
-    // hqdefault always exists, while maxresdefault is missing for some videos.
-    let thumbnail = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
-
-    const oembed = await fetchOEmbed(v);
-    if (oembed) {
-        title = oembed.title || title;
-        description = oembed.author_name
-            ? `${oembed.author_name} の YouTube 動画`
-            : description;
-        thumbnail = oembed.thumbnail_url || thumbnail;
-    }
-
-    const e = escapeHtml;
-
-    return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${e(title)}</title>
-<meta name="description" content="${e(description)}">
-<link rel="canonical" href="${e(shareUrl)}">
-<meta name="theme-color" content="#000000">
-<meta property="og:site_name" content="YouTube Link">
-<meta property="og:title" content="${e(title)}">
-<meta property="og:description" content="${e(description)}">
-<meta property="og:url" content="${e(shareUrl)}">
-<meta property="og:type" content="video.other">
-<meta property="og:image" content="${e(thumbnail)}">
-<meta property="og:image:alt" content="${e(title)}">
-<meta property="og:video" content="${e(embedUrl)}">
-<meta property="og:video:url" content="${e(embedUrl)}">
-<meta property="og:video:secure_url" content="${e(embedUrl)}">
-<meta property="og:video:type" content="text/html">
-<meta property="og:video:width" content="1280">
-<meta property="og:video:height" content="720">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${e(title)}">
-<meta name="twitter:description" content="${e(description)}">
-<meta name="twitter:image" content="${e(thumbnail)}">
-<meta name="twitter:image:alt" content="${e(title)}">
-</head>
-<body>
-<main>
-<p><a href="${e(shareUrl)}">${e(title)}</a></p>
-<p>${e(description)}</p>
-<p><a href="${e(shareUrl)}">YouTube で開く</a></p>
-</main>
-</body>
-</html>`;
 }
 
 function buildRedirectUrl(v: string, typeParam: string, t: string, ua: string) {
@@ -190,11 +49,13 @@ function redirectResponse(url: string) {
     });
 }
 
-function htmlResponse(html: string) {
-    return new Response(html, {
-        status: 200,
+// Link-preview bots get an empty body so services like Discord/X generate
+// no embed at all for ?v= links.
+function noEmbedResponse() {
+    return new Response(null, {
+        status: 204,
         headers: {
-            'Content-Type': 'text/html;charset=UTF-8',
+            'X-Robots-Tag': 'noindex',
             'Cache-Control': 'no-store',
             Vary: 'User-Agent',
         },
@@ -262,9 +123,9 @@ async function handleGoRequest(request: Request, env: Env): Promise<Response> {
 
     const ua = request.headers.get('user-agent') || '';
 
-    // Bots get an OGP page so Discord/X/Slack/etc. can render a video embed.
+    // Bots get an empty response so no embed is generated.
     if (isBot(ua)) {
-        return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
+        return noEmbedResponse();
     }
 
     // Everyone else gets redirected directly
@@ -292,7 +153,7 @@ export default {
                 const t = url.searchParams.get('t') || '';
                 const ua = request.headers.get('user-agent') || '';
                 if (isBot(ua)) {
-                    return htmlResponse(await buildOgHtml(v, request.url, typeParam, t));
+                    return noEmbedResponse();
                 }
                 return redirectResponse(buildRedirectUrl(v, typeParam, t, ua));
             }

@@ -1,7 +1,9 @@
 import React from 'react';
 
 export const metadata = {
-    title: 'リダイレクト | YouTube Link Service'
+    title: 'YouTube',
+    description: '',
+    robots: { index: false, follow: false },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
