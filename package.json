@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@vercel/speed-insights": "^2.0.0",
+    "@vercel/speed-insights": "^2.1.0",
     "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
@@ -26,6 +26,6 @@
     "eslint": "^10.14.0",
     "eslint-config-next": "^16.4.5",
     "typescript": "^7.0.2",
-    "wrangler": "^4.157.0"
+    "wrangler": "^4.158.0"
   }
 }
